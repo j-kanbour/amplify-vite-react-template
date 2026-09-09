@@ -10,8 +10,13 @@ const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
+      isDone: a.boolean().default(false)
     })
     .authorization((allow) => [allow.guest()]),
+  Users: a.model({
+    name: a.string(),
+    email: a.string()
+  }).authorization((allow) => [allow.guest()])
 });
 
 export type Schema = ClientSchema<typeof schema>;
