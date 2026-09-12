@@ -28,12 +28,26 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
     })
   );
 
-  await db.models.User.create({
+  // 1. Create the org
+  const { data: org, errors: orgErrors } = await db.models.Organisation.create({
+    name: attrs['custom:orgName'],
+  });
+  if (orgErrors || !org) {
+    throw new Error(`Failed to create organisation: ${JSON.stringify(orgErrors)}`);
+  }
+
+
+  // 2. Create the user linked to it
+  const { errors: userErrors } = await db.models.User.create({
     name: attrs.name,
     email: attrs.email,
     role: group,
     profileOwner: `${attrs.sub}::${event.userName}`,
+    orgId: org.id,
   });
+  if (userErrors) {
+    throw new Error(`Failed to create user: ${JSON.stringify(userErrors)}`);
+  }
 
   return event;
 };

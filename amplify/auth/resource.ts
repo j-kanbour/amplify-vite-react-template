@@ -6,6 +6,7 @@ export const auth = defineAuth({
   userAttributes: {
     fullname: {required: true, mutable: true },
     'custom:role': { dataType: 'String', mutable: true },
+    'custom:orgName': { dataType: 'String', mutable: true }
   },
   groups: ['Admin', 'Tutor', 'Parent'],
   triggers: { postConfirmation },

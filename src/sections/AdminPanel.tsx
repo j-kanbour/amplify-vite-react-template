@@ -13,6 +13,7 @@ export default function AdminPanel() {
     <section>
       <h2>All users</h2>
       <ul>{users.map((u) => <li key={u.id}>{u.name} — {u.role}</li>)}</ul>
+      
     </section>
   );
 }

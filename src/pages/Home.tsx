@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom';
-import Show from '../components/Show';
 import { useUser } from '../context/UserContext';
+import PeopleList from '../components/PeopleList';
 
+/**
+ * Same page, same component, different data:
+ * PeopleList shows every user to an Admin and only the signed-in user to
+ * a Tutor or Parent, because the User model's auth rules scope the query.
+ */
 export default function Home() {
   const { user, groups, loading } = useUser();
   if (loading) return <p>Loading…</p>;
@@ -12,15 +17,7 @@ export default function Home() {
       <p>Signed in as {user?.name} ({user?.email})</p>
       <p>Group: {groups.join(', ') || 'none yet'}</p>
 
-      <Show groups={['Admin']}>
-        <p>You have admin access.</p>
-      </Show>
-      <Show groups={['Tutor']}>
-        <p>Your students are waiting.</p>
-      </Show>
-      <Show groups={['Parent']}>
-        <p>Check in on your child's progress.</p>
-      </Show>
+      <PeopleList />
 
       <Link to="/dashboard">Go to dashboard</Link>
     </main>
