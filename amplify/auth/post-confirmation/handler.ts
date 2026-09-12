@@ -36,7 +36,6 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
     throw new Error(`Failed to create organisation: ${JSON.stringify(orgErrors)}`);
   }
 
-
   // 2. Create the user linked to it
   const { errors: userErrors } = await db.models.User.create({
     name: attrs.name,
