@@ -9,6 +9,7 @@ const schema = a
         name: a.string().required(),
         subscription: a.enum(['free','premium','corporate']),
         users: a.hasMany('User', 'orgId'),
+        initialSize: a.enum(["Solo","Small","Medium","Large"]),
         memberships: a.hasMany('Membership', 'orgId'),
         enrollments: a.hasMany('Enrollment', 'orgId'),
         resources: a.hasMany('Resource', 'orgId'),
@@ -23,7 +24,9 @@ const schema = a
       .model({
         name: a.string().required(),
         email: a.string().required(),
-        role: a.enum(['admin', 'tutor', 'parent']),
+        termsVersion: a.string(),
+        privacyVersion: a.string(),
+        role: a.enum(['Admin', 'Tutor', 'Parent']),
         profileOwner: a.string(),
         orgId: a.id(),
         org: a.belongsTo('Organisation', 'orgId'),
