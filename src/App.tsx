@@ -1,51 +1,11 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { useState } from 'react';
-import { Authenticator, SelectField, useAuthenticator, TextField} from '@aws-amplify/ui-react';
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import { UserProvider, useUser } from './context/UserContext';
 import RequirePermission from './components/RequirePermission';
+import { signUpFormFields, signUpComponents } from './components/SignUpForm';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Invites from './pages/Invites';
-import RoleSwitcher from './dev/RoleSwitcher'; // DEV ONLY, see src/dev
-
-const formFields = {
-  signUp: {
-    name: { label: 'Full name', placeholder: 'Enter your full name', order: 1 },
-    email: { order: 2 },
-    password: { order: 3 },
-    confirm_password: { order: 4 },
-  },
-};
-
-const components = {
-  SignUp: {
-    FormFields() {
-
-      const [role, setRole] = useState('Parent');
-      const { validationErrors } = useAuthenticator();
-
-      return (
-        <>
-          <Authenticator.SignUp.FormFields />
-          <SelectField label="I am a" name="custom:role" value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="Admin">Admin</option>
-            <option value="Parent">Parent</option>
-            <option value="Tutor">Tutor</option>
-          </SelectField>
-          {role === 'Admin' && (
-            <TextField
-              label="Organisation name"
-              name="custom:orgName"
-              placeholder="Enter your organisation"
-              errorMessage={validationErrors['custom:orgName'] as string}
-              hasError={!!validationErrors['custom:orgName']}
-            />
-          )}        
-        </>
-      );
-    },
-  },
-};
 
 function Nav() {
   const { signOut } = useAuthenticator();
@@ -61,10 +21,9 @@ function Nav() {
 
 export default function App() {
   return (
-    <Authenticator formFields={formFields} components={components}>
+    <Authenticator formFields={signUpFormFields} components={signUpComponents}>
       <UserProvider>
         <BrowserRouter>
-          <RoleSwitcher /> {/* DEV ONLY */}
           <Nav />
           <Routes>
             <Route path="/" element={<Home />} />

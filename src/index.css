@@ -63,3 +63,14 @@ a {
   font-weight: 800;
   text-decoration: none;
 }
+/* Login / sign-up screen: full-viewport background behind the Amplify Authenticator card. */
+[data-amplify-authenticator] {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: url('./assets/auth-page_background.svg') center / cover no-repeat, #FBF6EC;
+}
