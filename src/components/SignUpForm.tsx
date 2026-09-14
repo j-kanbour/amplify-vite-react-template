@@ -1,28 +1,66 @@
-import { Authenticator} from '@aws-amplify/ui-react';
+import { Authenticator } from '@aws-amplify/ui-react';
+import logo from '../assets/Tutor-Studio-logo.png';
 
 /** Field order/labels for the Amplify sign-up screen. */
 export const signUpFormFields = {
+  signIn: {
+    username: { label: 'Email', placeholder: 'you@example.com' },
+    password: { label: 'Password', placeholder: 'Enter your password' },
+  },
   signUp: {
-    name: { label: 'Full name', placeholder: 'Enter your full name', order: 1 },
-    email: { order: 2 },
-    'custom:orgName': { label: 'Business name', placeholder: 'Enter your business name', order: 3 },
-    password: { order: 4 },
-    confirm_password: { order: 5 },
+    name: { label: 'Full name', placeholder: 'e.g. Mia Tran', order: 1 },
+    email: { label: 'Email', placeholder: 'you@example.com', order: 2 },
+    'custom:orgName': { label: 'Business name', placeholder: 'e.g. Tutor Studio', order: 3 },
+    password: { label: 'Password', placeholder: 'Create a password', order: 4 },
+    confirm_password: { label: 'Confirm password', placeholder: 'Re-enter your password', order: 5 },
   },
 };
 
-function SignUpFormFields() {
-
+/** Brand header rendered above the Authenticator card. */
+function AuthHeader() {
   return (
-    <>
-      <Authenticator.SignUp.FormFields />
-    </>
+    <header className="bj-auth-header">
+      <img className="bj-auth-header__logo" src={logo} alt="Tutor Studio" />
+      <p className="bj-auth-header__tagline">Personalised lessons, weekly feedback.</p>
+    </header>
   );
+}
+
+function AuthFooter() {
+  return <footer className="bj-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>;
+}
+
+function SignInHeader() {
+  return (
+    <div className="bj-auth-heading">
+      <h2 className="bj-auth-heading__title">Welcome back</h2>
+      <p className="bj-auth-heading__sub">Sign in to see this week&apos;s sessions.</p>
+    </div>
+  );
+}
+
+function SignUpHeader() {
+  return (
+    <div className="bj-auth-heading">
+      <h2 className="bj-auth-heading__title">Create your account</h2>
+      <p className="bj-auth-heading__sub">Set up your business and start inviting parents and tutors.</p>
+    </div>
+  );
+}
+
+function SignUpFormFields() {
+  return <Authenticator.SignUp.FormFields />;
 }
 
 /** Component overrides passed to <Authenticator components={...}>. */
 export const signUpComponents = {
+  Header: AuthHeader,
+  Footer: AuthFooter,
+  SignIn: {
+    Header: SignInHeader,
+  },
   SignUp: {
+    Header: SignUpHeader,
     FormFields: SignUpFormFields,
   },
 };

@@ -6,6 +6,7 @@ import { signUpFormFields, signUpComponents } from './components/SignUpForm';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Invites from './pages/Invites';
+import Privacy from './pages/Privacy';
 
 function Nav() {
   const { signOut } = useAuthenticator();
@@ -19,22 +20,34 @@ function Nav() {
   );
 }
 
-export default function App() {
+/** Everything that requires a signed-in user. */
+function AuthedApp() {
   return (
     <Authenticator formFields={signUpFormFields} components={signUpComponents}>
       <UserProvider>
-        <BrowserRouter>
-          <Nav />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route element={<RequirePermission permission="users.invite" />}>
-              <Route path="/invites" element={<Invites />} />
-            </Route>
-            <Route path="*" element={<h1>404</h1>} />
-          </Routes>
-        </BrowserRouter>
+        <Nav />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route element={<RequirePermission permission="users.invite" />}>
+            <Route path="/invites" element={<Invites />} />
+          </Route>
+          <Route path="*" element={<h1>404</h1>} />
+        </Routes>
       </UserProvider>
     </Authenticator>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes: no sign-in, no nav */}
+        <Route path="/privacy" element={<Privacy />} />
+        {/* Everything else goes through the Authenticator */}
+        <Route path="*" element={<AuthedApp />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
