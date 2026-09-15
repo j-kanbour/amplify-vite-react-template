@@ -63,3 +63,369 @@ a {
   font-weight: 800;
   text-decoration: none;
 }
+/* ------------------------------------------------------------------
+   Tutor Studio design tokens (see src/dev/System Design.png)
+   ------------------------------------------------------------------ */
+:root {
+  --bj-orange: #f26b21;
+  --bj-orange-hover: #dc5c16;
+  --bj-orange-active: #c9530f;
+  --bj-orange-50: #fef2e9;
+  --bj-orange-100: #fde6d6;
+  --bj-pink: #f490c0;
+  --bj-blue: #2480e6;
+  --bj-teal: #2ebfa5;
+  --bj-gold: #fab81c;
+
+  --bj-canvas: #fbf6ec;
+  --bj-sunken: #f4ecdc;
+  --bj-card: #ffffff;
+  --bj-hairline: #e8dfcf;
+  --bj-ink-2: #5c5349;
+  --bj-ink: #2b2521;
+
+  --bj-success: #2ebfa5;
+  --bj-warning: #fab81c;
+  --bj-danger: #e5523e;
+  --bj-info: #2480e6;
+
+  --bj-font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --bj-font-body: 'Nunito', system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --bj-radius-sm: 8px;
+  --bj-radius-md: 12px;
+  --bj-radius-lg: 16px;
+  --bj-radius-xl: 24px;
+  --bj-radius-pill: 999px;
+
+  --bj-shadow-sm: 0 2px 6px rgba(92, 83, 73, 0.08);
+  --bj-shadow-lg: 0 16px 40px rgba(92, 83, 73, 0.14);
+}
+
+/* ------------------------------------------------------------------
+   Login / sign-up screen: full-viewport canvas behind the Amplify card
+   ------------------------------------------------------------------ */
+[data-amplify-authenticator] {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--bj-canvas);
+  font-family: var(--bj-font-body);
+  color: var(--bj-ink);
+
+  /* --- Amplify UI theme tokens ------------------------------------ */
+  --amplify-fonts-default-variable: var(--bj-font-body);
+  --amplify-fonts-default-static: var(--bj-font-body);
+
+  --amplify-colors-font-primary: var(--bj-ink);
+  --amplify-colors-font-secondary: var(--bj-ink-2);
+  --amplify-colors-font-tertiary: var(--bj-ink-2);
+  --amplify-colors-font-interactive: var(--bj-orange);
+  --amplify-colors-font-hover: var(--bj-orange-hover);
+  --amplify-colors-font-active: var(--bj-orange-active);
+  --amplify-colors-font-error: var(--bj-danger);
+  --amplify-colors-font-success: var(--bj-success);
+
+  --amplify-colors-primary-10: var(--bj-orange-50);
+  --amplify-colors-primary-20: var(--bj-orange-100);
+  --amplify-colors-primary-40: #f7a06f;
+  --amplify-colors-primary-60: #f4884a;
+  --amplify-colors-primary-80: var(--bj-orange);
+  --amplify-colors-primary-90: var(--bj-orange-hover);
+  --amplify-colors-primary-100: var(--bj-orange-active);
+
+  --amplify-colors-background-primary: var(--bj-card);
+  --amplify-colors-background-secondary: var(--bj-sunken);
+  --amplify-colors-border-primary: var(--bj-hairline);
+  --amplify-colors-border-secondary: var(--bj-hairline);
+  --amplify-colors-border-focus: var(--bj-orange);
+  --amplify-colors-border-error: var(--bj-danger);
+
+  --amplify-radii-small: var(--bj-radius-sm);
+  --amplify-radii-medium: var(--bj-radius-md);
+  --amplify-radii-large: var(--bj-radius-lg);
+  --amplify-radii-xl: var(--bj-radius-xl);
+
+  /* Card */
+  --amplify-components-authenticator-router-background-color: var(--bj-card);
+  --amplify-components-authenticator-router-border-color: var(--bj-hairline);
+  --amplify-components-authenticator-router-border-width: 1px;
+  --amplify-components-authenticator-router-border-style: solid;
+  --amplify-components-authenticator-router-box-shadow: var(--bj-shadow-lg);
+  --amplify-components-authenticator-form-padding: 32px;
+  --amplify-components-authenticator-container-width-max: 440px;
+
+  /* Tabs (Sign In / Create Account) */
+  --amplify-components-tabs-border-color: var(--bj-hairline);
+  --amplify-components-tabs-border-width: 1px;
+  --amplify-components-tabs-item-color: var(--bj-ink-2);
+  --amplify-components-tabs-item-hover-color: var(--bj-orange-hover);
+  --amplify-components-tabs-item-active-color: var(--bj-orange);
+  --amplify-components-tabs-item-active-border-color: var(--bj-orange);
+  --amplify-components-tabs-item-border-width: 2px;
+  --amplify-components-tabs-item-font-weight: 700;
+  --amplify-components-tabs-item-font-size: 1rem;
+
+  /* Inputs */
+  --amplify-components-field-label-color: var(--bj-ink);
+  --amplify-components-field-gap: 6px;
+  --amplify-components-fieldcontrol-border-color: var(--bj-hairline);
+  --amplify-components-fieldcontrol-border-radius: var(--bj-radius-md);
+  --amplify-components-fieldcontrol-color: var(--bj-ink);
+  --amplify-components-fieldcontrol-padding-block-start: 12px;
+  --amplify-components-fieldcontrol-padding-block-end: 12px;
+  --amplify-components-fieldcontrol-padding-inline-start: 14px;
+  --amplify-components-fieldcontrol-padding-inline-end: 14px;
+  --amplify-components-fieldcontrol-focus-border-color: var(--bj-orange);
+  --amplify-components-fieldcontrol-focus-box-shadow: 0 0 0 3px var(--bj-orange-100);
+  --amplify-components-fieldcontrol-error-border-color: var(--bj-danger);
+  --amplify-components-fieldcontrol-error-focus-box-shadow: 0 0 0 3px rgba(229, 82, 62, 0.2);
+  /* Input/TextField/PasswordField re-map the fieldcontrol tokens, so set those too */
+  --amplify-components-input-color: var(--bj-ink);
+  --amplify-components-input-border-color: var(--bj-hairline);
+  --amplify-components-input-focus-border-color: var(--bj-orange);
+  --amplify-components-input-font-size: 1rem;
+  --amplify-components-textfield-color: var(--bj-ink);
+  --amplify-components-textfield-border-color: var(--bj-hairline);
+  --amplify-components-textfield-focus-border-color: var(--bj-orange);
+  --amplify-components-textfield-font-size: 1rem;
+  --amplify-components-passwordfield-color: var(--bj-ink);
+  --amplify-components-passwordfield-button-color: var(--bj-ink-2);
+  --amplify-components-passwordfield-button-hover-background-color: var(--bj-orange-50);
+  --amplify-components-passwordfield-button-hover-border-color: var(--bj-hairline);
+  --amplify-components-passwordfield-button-hover-color: var(--bj-orange);
+  --amplify-components-passwordfield-button-focus-background-color: var(--bj-orange-50);
+  --amplify-components-passwordfield-button-focus-border-color: var(--bj-orange);
+  --amplify-components-passwordfield-button-focus-color: var(--bj-orange);
+  --amplify-components-passwordfield-button-active-background-color: var(--bj-orange-100);
+  --amplify-components-passwordfield-button-active-border-color: var(--bj-orange);
+  --amplify-components-passwordfield-button-active-color: var(--bj-orange-active);
+
+  /* Buttons */
+  --amplify-components-button-border-radius: var(--bj-radius-md);
+  --amplify-components-button-font-weight: 700;
+  --amplify-components-button-color: var(--bj-ink);
+  --amplify-components-button-border-color: var(--bj-hairline);
+  --amplify-components-button-hover-background-color: var(--bj-orange-50);
+  --amplify-components-button-hover-border-color: var(--bj-hairline);
+  --amplify-components-button-hover-color: var(--bj-ink);
+  --amplify-components-button-focus-box-shadow: 0 0 0 3px var(--bj-orange-100);
+  --amplify-components-button-primary-background-color: var(--bj-orange);
+  --amplify-components-button-primary-hover-background-color: var(--bj-orange-hover);
+  --amplify-components-button-primary-active-background-color: var(--bj-orange-active);
+  --amplify-components-button-primary-focus-background-color: var(--bj-orange-hover);
+  --amplify-components-button-primary-focus-box-shadow: 0 0 0 3px var(--bj-orange-100);
+  --amplify-components-button-primary-disabled-background-color: #f7a06f;
+  --amplify-components-button-primary-color: #ffffff;
+  --amplify-components-button-link-color: var(--bj-orange);
+  --amplify-components-button-link-hover-color: var(--bj-orange-hover);
+  --amplify-components-button-link-hover-background-color: var(--bj-orange-50);
+  --amplify-components-button-link-active-background-color: var(--bj-orange-100);
+
+  /* Alerts (error banners) */
+  --amplify-components-alert-border-radius: var(--bj-radius-md);
+  --amplify-components-alert-error-background-color: #fdeceb;
+  --amplify-components-alert-error-color: #b63a2b;
+}
+
+/* Never let the card exceed the viewport on small screens */
+[data-amplify-authenticator] [data-amplify-container] {
+  width: 100%;
+  max-width: var(--amplify-components-authenticator-container-width-max);
+}
+
+/* Card shape (radius isn't exposed as a router token) */
+[data-amplify-authenticator] [data-amplify-router] {
+  border-radius: var(--bj-radius-xl);
+  overflow: hidden;
+}
+
+/* Sign in / Create account tabs */
+[data-amplify-authenticator] .amplify-tabs__list {
+  background: var(--bj-sunken);
+}
+[data-amplify-authenticator] .amplify-tabs__item {
+  padding: 14px 8px;
+  border-bottom-width: 2px;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+[data-amplify-authenticator] .amplify-tabs__item--active {
+  background: var(--bj-card);
+}
+
+/* Field labels and inputs */
+[data-amplify-authenticator] .amplify-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+[data-amplify-authenticator] .amplify-input {
+  font-family: var(--bj-font-body);
+  font-size: 1rem;
+}
+[data-amplify-authenticator] .amplify-input::placeholder {
+  color: #8f877d;
+}
+[data-amplify-authenticator] .amplify-field__error-message {
+  font-size: 0.85rem;
+}
+
+[data-amplify-authenticator] .amplify-checkbox {
+  justify-content: center;
+  text-align: center;
+}
+
+/* Primary submit button */
+[data-amplify-authenticator] .amplify-button--primary {
+  padding: 13px 20px;
+  font-size: 1rem;
+  box-shadow: var(--bj-shadow-sm);
+  transition: background-color 0.15s, transform 0.1s;
+}
+[data-amplify-authenticator] .amplify-button--primary:active {
+  transform: translateY(1px);
+}
+[data-amplify-authenticator] .amplify-button--link {
+  font-weight: 700;
+}
+
+/* Brand header above the card */
+.bj-auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 24px;
+  text-align: center;
+}
+.bj-auth-header__logo {
+  width: 300px;
+  height: auto;
+  display: block;
+}
+.bj-auth-header__tagline {
+  margin: 0;
+  color: var(--bj-ink-2);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Headings inside the card (Sign in / Create account) */
+.bj-auth-heading {
+  padding: 28px 32px 0;
+}
+.bj-auth-heading__title {
+  margin: 0 0 4px;
+  font-family: var(--bj-font-display);
+  font-weight: 600;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--bj-ink);
+}
+.bj-auth-heading__sub {
+  margin: 0;
+  color: var(--bj-ink-2);
+  font-size: 0.95rem;
+}
+
+/* Footer under the card */
+.bj-auth-footer {
+  padding-top: 20px;
+  text-align: center;
+  color: var(--bj-ink-2);
+  font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------
+   Public legal pages (Privacy, Terms): same shell as the auth screen
+   ------------------------------------------------------------------ */
+.bj-legal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: start center;
+  overflow: auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--bj-canvas);
+  font-family: var(--bj-font-body);
+  color: var(--bj-ink);
+}
+.bj-legal__container {
+  width: 100%;
+  max-width: 720px;
+  padding: 24px 0;
+}
+.bj-legal__card {
+  background: var(--bj-card);
+  border: 1px solid var(--bj-hairline);
+  border-radius: var(--bj-radius-xl);
+  box-shadow: var(--bj-shadow-lg);
+  overflow: hidden;
+}
+.bj-legal__body {
+  padding: 8px 32px 0;
+  text-align: left;
+  line-height: 1.6;
+}
+.bj-legal__body h2 {
+  margin: 24px 0 6px;
+  font-family: var(--bj-font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--bj-ink);
+}
+.bj-legal__body p {
+  margin: 0 0 12px;
+  color: var(--bj-ink-2);
+  font-size: 0.95rem;
+}
+.bj-legal__actions {
+  padding: 24px 32px 32px;
+}
+.bj-legal__back {
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 20px;
+  border-radius: var(--bj-radius-md);
+  background: var(--bj-orange);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+  box-shadow: var(--bj-shadow-sm);
+  transition: background-color 0.15s, transform 0.1s;
+}
+.bj-legal__back:hover {
+  background: var(--bj-orange-hover);
+}
+.bj-legal__back:active {
+  background: var(--bj-orange-active);
+  transform: translateY(1px);
+}
+
+@media (max-width: 480px) {
+  .bj-legal__body {
+    padding: 8px 24px 0;
+  }
+  .bj-legal__actions {
+    padding: 20px 24px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  [data-amplify-authenticator] {
+    --amplify-components-authenticator-form-padding: 24px;
+  }
+  .bj-auth-heading {
+    padding: 24px 24px 0;
+  }
+  .bj-auth-heading__title {
+    font-size: 1.5rem;
+  }
+}
