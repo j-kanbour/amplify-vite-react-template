@@ -273,6 +273,11 @@ a {
   font-size: 0.85rem;
 }
 
+[data-amplify-authenticator] .amplify-checkbox {
+  justify-content: center;
+  text-align: center;
+}
+
 /* Primary submit button */
 [data-amplify-authenticator] .amplify-button--primary {
   padding: 13px 20px;
