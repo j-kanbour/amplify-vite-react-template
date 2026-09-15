@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Invites from './pages/Invites';
 import Privacy from './pages/Privacy';
+import TermsAndConditions from './pages/TermsAndConditions';
 
 function Nav() {
   const { signOut } = useAuthenticator();
@@ -45,6 +46,7 @@ export default function App() {
       <Routes>
         {/* Public routes: no sign-in, no nav */}
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
         {/* Everything else goes through the Authenticator */}
         <Route path="*" element={<AuthedApp />} />
       </Routes>

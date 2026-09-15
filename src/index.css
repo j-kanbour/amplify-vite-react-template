@@ -340,6 +340,84 @@ a {
   font-size: 0.85rem;
 }
 
+/* ------------------------------------------------------------------
+   Public legal pages (Privacy, Terms): same shell as the auth screen
+   ------------------------------------------------------------------ */
+.bj-legal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: start center;
+  overflow: auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--bj-canvas);
+  font-family: var(--bj-font-body);
+  color: var(--bj-ink);
+}
+.bj-legal__container {
+  width: 100%;
+  max-width: 720px;
+  padding: 24px 0;
+}
+.bj-legal__card {
+  background: var(--bj-card);
+  border: 1px solid var(--bj-hairline);
+  border-radius: var(--bj-radius-xl);
+  box-shadow: var(--bj-shadow-lg);
+  overflow: hidden;
+}
+.bj-legal__body {
+  padding: 8px 32px 0;
+  text-align: left;
+  line-height: 1.6;
+}
+.bj-legal__body h2 {
+  margin: 24px 0 6px;
+  font-family: var(--bj-font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--bj-ink);
+}
+.bj-legal__body p {
+  margin: 0 0 12px;
+  color: var(--bj-ink-2);
+  font-size: 0.95rem;
+}
+.bj-legal__actions {
+  padding: 24px 32px 32px;
+}
+.bj-legal__back {
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 20px;
+  border-radius: var(--bj-radius-md);
+  background: var(--bj-orange);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+  box-shadow: var(--bj-shadow-sm);
+  transition: background-color 0.15s, transform 0.1s;
+}
+.bj-legal__back:hover {
+  background: var(--bj-orange-hover);
+}
+.bj-legal__back:active {
+  background: var(--bj-orange-active);
+  transform: translateY(1px);
+}
+
+@media (max-width: 480px) {
+  .bj-legal__body {
+    padding: 8px 24px 0;
+  }
+  .bj-legal__actions {
+    padding: 20px 24px 24px;
+  }
+}
+
 @media (max-width: 480px) {
   [data-amplify-authenticator] {
     --amplify-components-authenticator-form-padding: 24px;

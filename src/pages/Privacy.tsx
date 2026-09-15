@@ -1,13 +1,12 @@
+import LegalPage from '../components/LegalPage';
+
 /**
  * Public privacy policy page. Not behind the Authenticator so the URL can be
  * given to Cognito managed login as the privacy policy link.
  */
 export default function Privacy() {
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '2rem', textAlign: 'left' }}>
-      <h1>Privacy Policy</h1>
-      <p>Last updated: 14 September 2026</p>
-
+    <LegalPage title="Privacy Policy" updated="14 September 2026">
       <h2>1. Information we collect</h2>
       <p>
         When you create an account we collect the information you provide, such as your
@@ -55,6 +54,6 @@ export default function Privacy() {
 
       <h2>8. Contact</h2>
       <p>If you have questions about this policy, please contact us.</p>
-    </main>
+    </LegalPage>
   );
 }

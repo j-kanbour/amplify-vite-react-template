@@ -30,7 +30,7 @@ function AuthFooter() {
   return <footer className="bj-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>;
 }
 
-function SignInHeader() {signUpFormFields
+function SignInHeader() {
   return (
     <div className="bj-auth-heading">
       <h2 className="bj-auth-heading__title">Welcome back</h2>
