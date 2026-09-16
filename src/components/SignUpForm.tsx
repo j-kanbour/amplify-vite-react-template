@@ -55,7 +55,7 @@ function SignUpFormFields() {
       <SelectField
         name="custom:orgSize"
         label="Business Size"
-        defaultValue="1"
+        defaultValue="Solo"
         isRequired
       >
         <option value="Solo">Just Me</option>
