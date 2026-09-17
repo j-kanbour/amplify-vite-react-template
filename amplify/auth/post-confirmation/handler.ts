@@ -12,9 +12,21 @@ import { type Schema } from '../../data/resource';
 const TERMS_VERSION = '2026-09-01';
 const PRIVACY_VERSION = '2026-09-01';
 
-const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
-Amplify.configure(resourceConfig, libraryOptions);
-const db = generateClient<Schema>();
+// The AMPLIFY_DATA_* vars are cross-resource references: at module load they
+// still hold the "<value will be resolved during runtime>" placeholder, and
+// Amplify only swaps in the real SSM values once an invocation starts. So the
+// client has to be built on first invoke, not at import time — otherwise
+// Amplify.configure() receives the placeholders and generateClient() throws.
+let dbPromise: Promise<ReturnType<typeof generateClient<Schema>>> | undefined;
+
+const getDb = () => {
+  dbPromise ??= (async () => {
+    const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
+    Amplify.configure(resourceConfig, libraryOptions);
+    return generateClient<Schema>();
+  })();
+  return dbPromise;
+};
 
 const cognito = new CognitoIdentityProviderClient();
 const ORG_SIZES = ["Solo","Small","Medium","Large"] as const;
@@ -25,6 +37,7 @@ const isOrgSize = (v: unknown): v is OrgSize =>
 
 export const handler: PostConfirmationTriggerHandler = async (event) => {
   const attrs = event.request.userAttributes;
+  const db = await getDb();
 
   // Federated (Google) users never fill in the business fields, so there is
   // nothing to create here. They are onboarded separately once signed in.
