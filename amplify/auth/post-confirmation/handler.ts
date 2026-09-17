@@ -26,6 +26,12 @@ const isOrgSize = (v: unknown): v is OrgSize =>
 export const handler: PostConfirmationTriggerHandler = async (event) => {
   const attrs = event.request.userAttributes;
 
+  // Federated (Google) users never fill in the business fields, so there is
+  // nothing to create here. They are onboarded separately once signed in.
+  if (attrs.identities) {
+    return event;
+  }
+
   await cognito.send(
     new AdminAddUserToGroupCommand({
       UserPoolId: event.userPoolId,

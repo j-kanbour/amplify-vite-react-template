@@ -24,7 +24,11 @@ function Nav() {
 /** Everything that requires a signed-in user. */
 function AuthedApp() {
   return (
-    <Authenticator formFields={signUpFormFields} components={signUpComponents}>
+    <Authenticator
+      socialProviders={['google']}
+      formFields={signUpFormFields}
+      components={signUpComponents}
+    >
       <UserProvider>
         <Nav />
         <Routes>
