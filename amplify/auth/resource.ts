@@ -1,5 +1,16 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
 import { postConfirmation } from './post-confirmation/resource';
+import { preSignUp } from './pre-signup/resource';
+import { completeOnboarding } from '../data/complete-onboarding/resource';
+
+// Local sandbox values live in .env.local (gitignored). Variables already set
+// in the environment win, so Amplify's console settings still apply in CI,
+// where the file doesn't exist.
+try {
+  process.loadEnvFile('.env.local');
+} catch {
+  // no file: rely on the real environment
+}
 
 /**
  * OAuth redirect targets, set as environment variables on the Amplify app
@@ -48,6 +59,10 @@ export const auth = defineAuth({
     'custom:privacyVersion': { dataType: 'String', mutable: true, maxLen: 16 },
   },
   groups: ['Admin', 'Tutor', 'Parent'],
-  triggers: { postConfirmation },
-  access: (allow) => [allow.resource(postConfirmation).to(['addUserToGroup'])],
+  triggers: { preSignUp, postConfirmation },
+  access: (allow) => [
+    allow.resource(preSignUp).to(['listUsers']),
+    allow.resource(postConfirmation).to(['addUserToGroup']),
+    allow.resource(completeOnboarding).to(['getUser', 'updateUserAttributes', 'addUserToGroup']),
+  ],
 });

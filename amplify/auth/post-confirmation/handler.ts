@@ -8,6 +8,7 @@ import { generateClient } from 'aws-amplify/data';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { env } from '$amplify/env/post-confirmation';
 import { type Schema } from '../../data/resource';
+import { isOrgSize } from '../../data/org-sizes';
 
 const TERMS_VERSION = '2026-09-01';
 const PRIVACY_VERSION = '2026-09-01';
@@ -29,21 +30,23 @@ const getDb = () => {
 };
 
 const cognito = new CognitoIdentityProviderClient();
-const ORG_SIZES = ["Solo","Small","Medium","Large"] as const;
-type OrgSize = (typeof ORG_SIZES)[number];
-
-const isOrgSize = (v: unknown): v is OrgSize =>
-  ORG_SIZES.includes(v as OrgSize);
 
 export const handler: PostConfirmationTriggerHandler = async (event) => {
+  // This trigger also fires after a password reset is confirmed; only a
+  // first-time sign-up should create anything.
+  if (event.triggerSource !== 'PostConfirmation_ConfirmSignUp') {
+    return event;
+  }
+
   const attrs = event.request.userAttributes;
-  const db = await getDb();
 
   // Federated (Google) users never fill in the business fields, so there is
   // nothing to create here. They are onboarded separately once signed in.
   if (attrs.identities) {
     return event;
   }
+
+  const db = await getDb();
 
   await cognito.send(
     new AdminAddUserToGroupCommand({

@@ -103,9 +103,11 @@ a {
 }
 
 /* ------------------------------------------------------------------
-   Login / sign-up screen: full-viewport canvas behind the Amplify card
+   Login / sign-up screen: full-viewport canvas behind the Amplify card.
+   The onboarding page shares the canvas and the Amplify theme tokens.
    ------------------------------------------------------------------ */
-[data-amplify-authenticator] {
+[data-amplify-authenticator],
+.bj-onboarding {
   position: fixed;
   inset: 0;
   display: grid;
@@ -338,6 +340,43 @@ a {
   text-align: center;
   color: var(--bj-ink-2);
   font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------
+   Onboarding (Google sign-ups): legal-page card at the auth card's width
+   ------------------------------------------------------------------ */
+.bj-onboarding__container {
+  max-width: var(--amplify-components-authenticator-container-width-max);
+}
+.bj-onboarding__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 32px 32px;
+  text-align: left;
+}
+.bj-onboarding__account {
+  margin: 0;
+  color: var(--bj-ink-2);
+  font-size: 0.95rem;
+}
+.bj-onboarding .amplify-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.bj-onboarding .amplify-button--primary {
+  padding: 13px 20px;
+  font-size: 1rem;
+  box-shadow: var(--bj-shadow-sm);
+}
+.bj-onboarding .amplify-button--link {
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .bj-onboarding__form {
+    padding: 20px 24px 24px;
+  }
 }
 
 /* ------------------------------------------------------------------

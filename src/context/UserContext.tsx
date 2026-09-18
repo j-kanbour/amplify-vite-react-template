@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { client, type Schema } from '../data/client';
 import { isAllowed, type Permission } from '../access';
@@ -16,6 +16,13 @@ type Ctx = {
   org: OrgRecord | null;
   subscription: string;
   loading: boolean;
+  /**
+   * Signed in but not yet in any group: a Google sign-up that hasn't finished
+   * the onboarding page. Email sign-ups get their group in post-confirmation.
+   */
+  needsOnboarding: boolean;
+  /** Re-fetch tokens (picking up new groups) and the user's records. */
+  refresh: () => Promise<void>;
   /** Raw group check. Prefer `can` in components. */
   has: (...g: string[]) => boolean;
   /** Named permission check backed by src/access.ts. */
@@ -29,6 +36,8 @@ const UserContext = createContext<Ctx>({
   org: null,
   subscription: 'free',
   loading: true,
+  needsOnboarding: false,
+  refresh: async () => {},
   has: () => false,
   can: () => false,
 });
@@ -40,27 +49,45 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [subscription, setSubscription] = useState('free');
   const [loading, setLoading] = useState(true);
 
+  const load = useCallback(async (forceRefresh = false) => {
+    const s = await fetchAuthSession({ forceRefresh });
+    const payload = s.tokens?.accessToken.payload;
+    setRealGroups((payload?.['cognito:groups'] as string[]) ?? []);
+
+    // Admins can read every User and every Organisation, so look up our own
+    // records explicitly rather than taking the first row of a list.
+    const profileOwner = `${payload?.sub}::${payload?.username}`;
+    const { data } = await client.models.User.listUserByProfileOwner({ profileOwner });
+    const me = data[0] ?? null;
+    setUser(me);
+    const { data: orgData } = me?.orgId
+      ? await client.models.Organisation.get({ id: me.orgId })
+      : { data: null };
+    setOrg(orgData ?? null);
+    setSubscription(orgData?.subscription ?? 'free');
+  }, []);
+
   useEffect(() => {
     (async () => {
-      const s = await fetchAuthSession();
-      setRealGroups((s.tokens?.accessToken.payload['cognito:groups'] as string[]) ?? []);
-      const { data } = await client.models.User.list();
-      setUser(data[0] ?? null); // owner auth → only their own record comes back
-      const { data: orgData } = await client.models.Organisation.list();
-      setOrg(orgData[0] ?? null);
-      setSubscription(orgData[0]?.subscription ?? 'free');
-      setLoading(false);
+      try {
+        await load();
+      } finally {
+        setLoading(false);
+      }
     })();
-  }, []);
+  }, [load]);
+
+  const refresh = useCallback(() => load(true), [load]);
 
   const override = readGroupOverride(); // DEV ONLY: null in production
   const groups = override ? [override] : realGroups;
 
   const has = (...g: string[]) => g.some((x) => groups.includes(x));
   const can = (permission: Permission) => isAllowed(permission, groups);
+  const needsOnboarding = realGroups.length === 0;
 
   return (
-    <UserContext.Provider value={{ groups, realGroups, user, org, subscription, loading, has, can }}>
+    <UserContext.Provider value={{ groups, realGroups, user, org, subscription, loading, needsOnboarding, refresh, has, can }}>
       {children}
     </UserContext.Provider>
   );

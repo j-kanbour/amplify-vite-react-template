@@ -1,11 +1,12 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import { UserProvider, useUser } from './context/UserContext';
 import RequirePermission from './components/RequirePermission';
-import { signUpFormFields, signUpComponents } from './components/SignUpForm';
+import { signUpFormFields, signUpComponents, authServices } from './components/SignUpForm';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Invites from './pages/Invites';
+import Onboarding from './pages/Onboarding';
 import Privacy from './pages/Privacy';
 import TermsAndConditions from './pages/TermsAndConditions';
 
@@ -21,6 +22,29 @@ function Nav() {
   );
 }
 
+/**
+ * Keeps signed-in users who haven't finished onboarding on /onboarding (and
+ * everyone else off it). Group membership lives on the Cognito user, so this
+ * holds across sign-outs and devices until onboarding completes.
+ */
+function OnboardingGate() {
+  const { loading, needsOnboarding } = useUser();
+  const { pathname } = useLocation();
+  if (loading) return <p>Loading…</p>;
+  if (needsOnboarding && pathname !== '/onboarding') return <Navigate to="/onboarding" replace />;
+  if (!needsOnboarding && pathname === '/onboarding') return <Navigate to="/" replace />;
+  return <Outlet />;
+}
+
+function AppLayout() {
+  return (
+    <>
+      <Nav />
+      <Outlet />
+    </>
+  );
+}
+
 /** Everything that requires a signed-in user. */
 function AuthedApp() {
   return (
@@ -28,16 +52,21 @@ function AuthedApp() {
       socialProviders={['google']}
       formFields={signUpFormFields}
       components={signUpComponents}
+      services={authServices}
     >
       <UserProvider>
-        <Nav />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route element={<RequirePermission permission="users.invite" />}>
-            <Route path="/invites" element={<Invites />} />
+          <Route element={<OnboardingGate />}>
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route element={<RequirePermission permission="users.invite" />}>
+                <Route path="/invites" element={<Invites />} />
+              </Route>
+              <Route path="*" element={<h1>404</h1>} />
+            </Route>
           </Route>
-          <Route path="*" element={<h1>404</h1>} />
         </Routes>
       </UserProvider>
     </Authenticator>

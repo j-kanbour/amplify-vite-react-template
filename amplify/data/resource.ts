@@ -1,5 +1,7 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { postConfirmation } from '../auth/post-confirmation/resource';
+import { completeOnboarding } from './complete-onboarding/resource';
+import { ORG_SIZES } from './org-sizes';
 
 const schema = a
   .schema({
@@ -9,7 +11,7 @@ const schema = a
         name: a.string().required(),
         subscription: a.enum(['free','premium','corporate']),
         users: a.hasMany('User', 'orgId'),
-        initialSize: a.enum(["Solo","Small","Medium","Large"]),
+        initialSize: a.enum(ORG_SIZES),
         memberships: a.hasMany('Membership', 'orgId'),
         enrollments: a.hasMany('Enrollment', 'orgId'),
         resources: a.hasMany('Resource', 'orgId'),
@@ -35,6 +37,8 @@ const schema = a
         guardianships: a.hasMany('Guardian', 'userId'),
         lessons: a.hasMany('LessonTutor', 'tutorId'),
       })
+      // lets a user (and the onboarding Lambda) look up their own record
+      .secondaryIndexes((index) => [index('profileOwner')])
       .authorization((allow) => [
         allow.ownerDefinedIn('profileOwner'),
         allow.group('Admin'),
@@ -196,8 +200,26 @@ const schema = a
         allow.ownerDefinedIn('owner').to(['read', 'update']),
         allow.group('Admin'),
       ]),
+    //Onboarding: finishes sign-up for Google users (creates their org + User)
+    OnboardingResult: a.customType({
+      userId: a.id().required(),
+      orgId: a.id().required(),
+    }),
+    completeOnboarding: a
+      .mutation()
+      .arguments({
+        orgName: a.string().required(),
+        orgSize: a.string().required(),
+        acceptedTerms: a.boolean().required(),
+      })
+      .returns(a.ref('OnboardingResult'))
+      .handler(a.handler.function(completeOnboarding))
+      .authorization((allow) => [allow.authenticated()]),
   })
-  .authorization((allow) => [allow.resource(postConfirmation)]);
+  .authorization((allow) => [
+    allow.resource(postConfirmation),
+    allow.resource(completeOnboarding),
+  ]);
 
 export type Schema = ClientSchema<typeof schema>;
 
