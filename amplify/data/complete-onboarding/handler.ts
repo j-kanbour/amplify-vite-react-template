@@ -52,8 +52,10 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
     throw new Error('This account has already been set up.');
   }
 
+  const name = event.arguments.name.trim();
   const orgName = event.arguments.orgName.trim();
   const { orgSize, acceptedTerms } = event.arguments;
+  if (!name) throw new Error('Full name is required.');
   if (!orgName) throw new Error('Business name is required.');
   if (!isOrgSize(orgSize)) throw new Error('Invalid business size.');
   if (!acceptedTerms) throw new Error('You must accept the Terms and Privacy Policy.');
@@ -88,8 +90,11 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
     }
 
     // 2. Create the user linked to it
+    // The name they confirmed on the onboarding page. Only the DB copy is
+    // kept: Cognito's `name` is mapped from Google and gets overwritten with
+    // Google's value on every Google sign-in.
     const { data: created, errors: userErrors } = await db.models.User.create({
-      name: attr('name') || email,
+      name,
       email,
       role: 'Admin',
       profileOwner,

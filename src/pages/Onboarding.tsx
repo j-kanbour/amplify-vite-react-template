@@ -17,6 +17,7 @@ export default function Onboarding() {
   const { signOut } = useAuthenticator();
   const { refresh } = useUser();
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [orgName, setOrgName] = useState('');
   const [orgSize, setOrgSize] = useState<string>('Solo');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -25,7 +26,11 @@ export default function Onboarding() {
 
   useEffect(() => {
     fetchUserAttributes()
-      .then((attrs) => setEmail(attrs.email ?? ''))
+      .then((attrs) => {
+        setEmail(attrs.email ?? '');
+        // Prefill from Google; the user can change it before continuing
+        setName((current) => current || (attrs.name ?? ''));
+      })
       .catch(() => {});
   }, []);
 
@@ -35,6 +40,7 @@ export default function Onboarding() {
     setSubmitting(true);
     try {
       const { errors } = await client.mutations.completeOnboarding({
+        name: name.trim(),
         orgName: orgName.trim(),
         orgSize,
         acceptedTerms,
@@ -69,6 +75,14 @@ export default function Onboarding() {
                 Signed in as <strong>{email}</strong>
               </p>
             )}
+            <TextField
+              label="Full name"
+              placeholder="e.g. Mia Tran"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              isRequired
+            />
             <TextField
               label="Business name"
               placeholder="e.g. Tutor Studio"
@@ -110,7 +124,7 @@ export default function Onboarding() {
               variation="primary"
               isLoading={submitting}
               loadingText="Setting up…"
-              isDisabled={!orgName.trim() || !acceptedTerms}
+              isDisabled={!name.trim() || !orgName.trim() || !acceptedTerms}
             >
               Continue
             </Button>

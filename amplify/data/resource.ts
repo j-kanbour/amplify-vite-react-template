@@ -208,6 +208,7 @@ const schema = a
     completeOnboarding: a
       .mutation()
       .arguments({
+        name: a.string().required(),
         orgName: a.string().required(),
         orgSize: a.string().required(),
         acceptedTerms: a.boolean().required(),

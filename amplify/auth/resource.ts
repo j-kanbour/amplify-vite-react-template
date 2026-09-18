@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { parseEnv } from 'node:util';
 import { defineAuth, secret } from '@aws-amplify/backend';
 import { postConfirmation } from './post-confirmation/resource';
 import { preSignUp } from './pre-signup/resource';
@@ -5,11 +7,13 @@ import { completeOnboarding } from '../data/complete-onboarding/resource';
 
 // Local sandbox values live in .env.local (gitignored). Variables already set
 // in the environment win, so Amplify's console settings still apply in CI,
-// where the file doesn't exist.
-try {
-  process.loadEnvFile('.env.local');
-} catch {
-  // no file: rely on the real environment
+// where the file doesn't exist. Assigned by hand rather than with
+// process.loadEnvFile(): CDK swaps process.env for a copy during synth, and
+// loadEnvFile writes to the real environment underneath it.
+if (existsSync('.env.local')) {
+  for (const [key, value] of Object.entries(parseEnv(readFileSync('.env.local', 'utf8')))) {
+    process.env[key] ??= value;
+  }
 }
 
 /**
