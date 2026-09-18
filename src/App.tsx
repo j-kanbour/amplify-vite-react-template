@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate, Outlet, useMatch } from 'react-router-dom';
 import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import { UserProvider, useUser } from './context/UserContext';
 import RequirePermission from './components/RequirePermission';
@@ -29,10 +29,12 @@ function Nav() {
  */
 function OnboardingGate() {
   const { loading, needsOnboarding } = useUser();
-  const { pathname } = useLocation();
+  // Match the route rather than comparing strings: Amplify Hosting redirects
+  // /onboarding to /onboarding/, which the route still renders.
+  const onOnboarding = useMatch('/onboarding') !== null;
   if (loading) return <p>Loading…</p>;
-  if (needsOnboarding && pathname !== '/onboarding') return <Navigate to="/onboarding" replace />;
-  if (!needsOnboarding && pathname === '/onboarding') return <Navigate to="/" replace />;
+  if (needsOnboarding && !onOnboarding) return <Navigate to="/onboarding" replace />;
+  if (!needsOnboarding && onOnboarding) return <Navigate to="/" replace />;
   return <Outlet />;
 }
 
