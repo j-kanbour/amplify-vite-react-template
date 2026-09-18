@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { client, type Schema } from '../data/client';
-import { isAllowed, type Permission } from '../access';
+import { GROUPS, isAllowed, type Permission } from '../access';
 import { readGroupOverride } from '../dev/roleOverride'; // DEV ONLY, see src/dev
 
 type UserRecord = Schema['User']['type'];
@@ -17,7 +17,7 @@ type Ctx = {
   subscription: string;
   loading: boolean;
   /**
-   * Signed in but not yet in any group: a Google sign-up that hasn't finished
+   * Signed in but not yet in an app group: a Google sign-up that hasn't finished
    * the onboarding page. Email sign-ups get their group in post-confirmation.
    */
   needsOnboarding: boolean;
@@ -84,7 +84,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const has = (...g: string[]) => g.some((x) => groups.includes(x));
   const can = (permission: Permission) => isAllowed(permission, groups);
-  const needsOnboarding = realGroups.length === 0;
+  // Only the app's groups count: Cognito also puts every Google user in an
+  // automatic "<poolId>_Google" group.
+  const needsOnboarding = !realGroups.some((g) => (GROUPS as readonly string[]).includes(g));
 
   return (
     <UserContext.Provider value={{ groups, realGroups, user, org, subscription, loading, needsOnboarding, refresh, has, can }}>

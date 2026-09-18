@@ -29,6 +29,7 @@ const getDb = () => {
 };
 
 const cognito = new CognitoIdentityProviderClient();
+const APP_GROUPS = ['Admin', 'Tutor', 'Parent'];
 
 /**
  * Finishes sign-up for users who came in through Google, who skip the
@@ -46,9 +47,11 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
     throw new Error('Unauthorized');
   }
 
-  // Already in a group means already onboarded (or invited into someone
-  // else's org). Never let this mutation promote them to Admin.
-  if (identity.groups?.length) {
+  // Already in an app group means already onboarded (or invited into someone
+  // else's org). Never let this mutation promote them to Admin. Cognito also
+  // puts every Google user in an automatic "<poolId>_Google" group, which
+  // doesn't count.
+  if (identity.groups?.some((g) => APP_GROUPS.includes(g))) {
     throw new Error('This account has already been set up.');
   }
 
