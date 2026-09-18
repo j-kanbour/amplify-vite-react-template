@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, Authenticator, SelectField, CheckboxField } from '@aws-amplify/ui-react';
-import { signUp, type SignUpInput } from 'aws-amplify/auth';
+import { signInWithRedirect, signUp, type SignUpInput } from 'aws-amplify/auth';
 import type { OrgSize } from '../../amplify/data/org-sizes';
 import logo from '../assets/Tutor-Studio-logo.png';
 
@@ -57,23 +57,57 @@ function readOAuthError() {
   return message ? cleanTriggerError(message) : null;
 }
 
+/**
+ * Sent by the pre-signup trigger after it links a first Google sign-in to an
+ * email account. That sign-in had to be aborted; signing in with Google again
+ * lands on the linked account.
+ */
+const ACCOUNT_LINKED = 'ACCOUNT_LINKED';
+const LINK_RETRY_KEY = 'oauthLinkRetryAt';
+
+/** Allows one automatic retry a minute, so a repeat failure can't loop. */
+function claimLinkRetry() {
+  try {
+    const last = Number(sessionStorage.getItem(LINK_RETRY_KEY) ?? 0);
+    if (Date.now() - last < 60_000) return false;
+    sessionStorage.setItem(LINK_RETRY_KEY, String(Date.now()));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function SignInHeader() {
   const [oauthError] = useState(readOAuthError);
+  const linked = oauthError?.includes(ACCOUNT_LINKED) ?? false;
+  const [retrying] = useState(() => linked && claimLinkRetry());
 
-  // Drop the error from the URL so it doesn't reappear after a later sign-out.
   useEffect(() => {
     if (!oauthError) return;
+    // Drop the error from the URL so it doesn't reappear after a later sign-out.
     const url = new URL(window.location.href);
     url.searchParams.delete('error');
     url.searchParams.delete('error_description');
     window.history.replaceState(window.history.state, '', url);
-  }, [oauthError]);
+
+    if (retrying) signInWithRedirect({ provider: 'Google' });
+  }, [oauthError, retrying]);
 
   return (
     <div className="bj-auth-heading">
       <h2 className="bj-auth-heading__title">Welcome back</h2>
       <p className="bj-auth-heading__sub">Sign in to see this week&apos;s sessions.</p>
-      {oauthError && (
+      {retrying && (
+        <Alert variation="info" marginTop="16px">
+          Finishing Google sign-in…
+        </Alert>
+      )}
+      {linked && !retrying && (
+        <Alert variation="info" marginTop="16px">
+          Your Google account is now connected. Sign in with Google again to continue.
+        </Alert>
+      )}
+      {oauthError && !linked && (
         <Alert variation="error" marginTop="16px">
           {oauthError}
         </Alert>

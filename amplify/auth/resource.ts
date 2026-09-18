@@ -46,6 +46,9 @@ export const auth = defineAuth({
         scopes: ['email', 'profile', 'openid'],
         attributeMapping: {
           email: 'email',
+          // The pre-signup trigger only links Google to an account when Google
+          // vouches for the address.
+          emailVerified: 'email_verified',
           fullname: 'name',
         },
       },
@@ -65,7 +68,8 @@ export const auth = defineAuth({
   groups: ['Admin', 'Tutor', 'Parent'],
   triggers: { preSignUp, postConfirmation },
   access: (allow) => [
-    allow.resource(preSignUp).to(['listUsers']),
+    // Linking itself isn't an Amplify action: granted in amplify/backend.ts
+    allow.resource(preSignUp).to(['listUsers', 'createUser', 'setUserPassword', 'deleteUser']),
     allow.resource(postConfirmation).to(['addUserToGroup']),
     allow.resource(completeOnboarding).to(['getUser', 'updateUserAttributes', 'addUserToGroup']),
   ],
