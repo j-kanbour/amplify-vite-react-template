@@ -1,7 +1,9 @@
-import { BrowserRouter, Routes, Route, Link, Navigate, Outlet, useMatch } from 'react-router-dom';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useMatch } from 'react-router-dom';
+import { Authenticator } from '@aws-amplify/ui-react';
 import { UserProvider, useUser } from './context/UserContext';
 import RequirePermission from './components/RequirePermission';
+import Header from './components/Headder';
+import SideNav from './components/SideNav';
 import { signUpFormFields, signUpComponents, authServices } from './components/SignUpForm';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -9,18 +11,6 @@ import Invites from './pages/Invites';
 import Onboarding from './pages/Onboarding';
 import Privacy from './pages/Privacy';
 import TermsAndConditions from './pages/TermsAndConditions';
-
-function Nav() {
-  const { signOut } = useAuthenticator();
-  const { can } = useUser();
-  return (
-    <nav>
-      <Link to="/">Home</Link> <Link to="/dashboard">Dashboard</Link>{' '}
-      {can('users.invite') && <Link to="/invites">Invites</Link>}{' '}
-      <button onClick={signOut}>Sign out</button>
-    </nav>
-  );
-}
 
 /**
  * Keeps signed-in users who haven't finished onboarding on /onboarding (and
@@ -40,10 +30,13 @@ function OnboardingGate() {
 
 function AppLayout() {
   return (
-    <>
-      <Nav />
-      <Outlet />
-    </>
+    <div className="bj-app">
+      <Header />
+      <SideNav />
+      <div className="bj-app__content">
+        <Outlet />
+      </div>
+    </div>
   );
 }
 
