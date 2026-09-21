@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useUser } from '../context/UserContext';
+import logo from '../assets/Tutor-Studio-mark.png';
 
 function initials(name?: string | null) {
   if (!name) return '?';
@@ -17,7 +18,7 @@ function BellIcon() {
   );
 }
 
-/** Top bar: business name centred, notifications and the user menu on the right. */
+/** Top bar: Tutor Studio brand on the left, business name centred, notifications and the user menu on the right. */
 export default function Header() {
   const { signOut } = useAuthenticator();
   const { user, org } = useUser();
@@ -41,7 +42,12 @@ export default function Header() {
 
   return (
     <header className="bj-header">
-      <div className="bj-header__start" />
+      <div className="bj-header__start">
+        <img className="bj-header__logo" src={logo} alt="" />
+        <span className="bj-header__brand">
+          <span className="bj-header__brand-tutor">Tutor</span> <span className="bj-header__brand-studio">Studio</span>
+        </span>
+      </div>
 
       <div className="bj-header__title">{org?.name ?? ''}</div>
 

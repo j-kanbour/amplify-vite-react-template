@@ -510,6 +510,29 @@ a {
   border-bottom: 1px solid var(--bj-hairline);
   z-index: 20;
 }
+.bj-header__start {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.bj-header__logo {
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+.bj-header__brand {
+  font-family: var(--bj-font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  white-space: nowrap;
+}
+.bj-header__brand-tutor {
+  color: var(--bj-orange);
+}
+.bj-header__brand-studio {
+  color: var(--bj-blue);
+}
 .bj-header__title {
   font-family: var(--bj-font-display);
   font-weight: 600;
@@ -603,7 +626,8 @@ a {
   color: var(--bj-orange);
 }
 
-/* Left rail: icons only, expands over the content on hover/keyboard focus */
+/* Left rail: icons only, expands over the content on hover (or keyboard focus,
+   but not the focus left behind by a mouse click) */
 .bj-sidenav {
   position: absolute;
   top: var(--bj-header-h);
@@ -615,14 +639,13 @@ a {
   gap: 4px;
   padding: 12px 10px;
   box-sizing: border-box;
-  background: var(--bj-card);
-  border-right: 1px solid var(--bj-hairline);
+  background: var(--bj-orange);
   overflow: hidden;
   z-index: 10;
   transition: width 0.2s ease, box-shadow 0.2s ease;
 }
 .bj-sidenav:hover,
-.bj-sidenav:focus-within {
+.bj-sidenav:has(:focus-visible) {
   width: var(--bj-rail-w-open);
   box-shadow: var(--bj-shadow-lg);
 }
@@ -633,18 +656,23 @@ a {
   height: 44px;
   padding: 0 13px;
   border-radius: var(--bj-radius-md);
-  color: var(--bj-ink-2);
+  color: #ffffff;
   font-weight: 700;
   white-space: nowrap;
   transition: background-color 0.15s, color 0.15s;
 }
 .bj-sidenav__link:hover {
-  background: var(--bj-orange-50);
-  color: var(--bj-orange);
+  background: var(--bj-orange-hover);
+  color: #ffffff;
 }
-.bj-sidenav__link--active {
-  background: var(--bj-orange-100);
-  color: var(--bj-orange-active);
+.bj-sidenav__link--active,
+.bj-sidenav__link--active:hover {
+  background: var(--bj-orange-active);
+  color: #ffffff;
+}
+.bj-sidenav__link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -2px;
 }
 .bj-sidenav__icon {
   display: grid;
@@ -656,7 +684,7 @@ a {
   transition: opacity 0.15s ease;
 }
 .bj-sidenav:hover .bj-sidenav__label,
-.bj-sidenav:focus-within .bj-sidenav__label {
+.bj-sidenav:has(:focus-visible) .bj-sidenav__label {
   opacity: 1;
 }
 
@@ -673,6 +701,9 @@ a {
   }
   .bj-header__title {
     font-size: 1.05rem;
+  }
+  .bj-header__brand {
+    display: none;
   }
   .bj-app__content {
     padding: 16px;

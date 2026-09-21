@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Authenticator, SelectField, CheckboxField } from '@aws-amplify/ui-react';
+import { Alert, Authenticator, Button, SelectField, CheckboxField, useAuthenticator } from '@aws-amplify/ui-react';
 import { signInWithRedirect, signUp, type SignUpInput } from 'aws-amplify/auth';
 import type { OrgSize } from '../../amplify/data/org-sizes';
 import logo from '../assets/Tutor-Studio-logo.png';
@@ -159,6 +159,16 @@ function SignUpFormFields() {
   )
 }
 
+/** The reset-code step has no way back by default, unlike the email step. */
+function ConfirmResetPasswordFooter() {
+  const { toSignIn } = useAuthenticator();
+  return (
+    <Button type="button" variation="link" size="small" fontWeight="normal" width="100%" onClick={toSignIn}>
+      Back to Sign In
+    </Button>
+  );
+}
+
 /** Service overrides passed to <Authenticator services={...}>. */
 export const authServices = {
   async handleSignUp(input: SignUpInput) {
@@ -191,5 +201,8 @@ export const signUpComponents = {
   SignUp: {
     Header: SignUpHeader,
     FormFields: SignUpFormFields,
+  },
+  ConfirmResetPassword: {
+    Footer: ConfirmResetPasswordFooter,
   },
 };
