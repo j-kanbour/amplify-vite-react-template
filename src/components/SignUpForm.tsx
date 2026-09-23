@@ -31,15 +31,15 @@ export const signUpFormFields = {
 /** Brand header rendered above the Authenticator card. */
 function AuthHeader() {
   return (
-    <header className="bj-auth-header">
-      <img className="bj-auth-header__logo" src={logo} alt="Tutor Studio" />
-      <p className="bj-auth-header__tagline">Personalised lessons, weekly feedback.</p>
+    <header className="ts-auth-header">
+      <img className="ts-auth-header__logo" src={logo} alt="Tutor Studio" />
+      <p className="ts-auth-header__tagline">Personalised lessons, weekly feedback.</p>
     </header>
   );
 }
 
 function AuthFooter() {
-  return <footer className="bj-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>;
+  return <footer className="ts-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>;
 }
 
 /** Cognito prefixes errors thrown by triggers with "PreSignUp failed with error ". */
@@ -94,9 +94,9 @@ function SignInHeader() {
   }, [oauthError, retrying]);
 
   return (
-    <div className="bj-auth-heading">
-      <h2 className="bj-auth-heading__title">Welcome back</h2>
-      <p className="bj-auth-heading__sub">Sign in to see this week&apos;s sessions.</p>
+    <div className="ts-auth-heading">
+      <h2 className="ts-auth-heading__title">Welcome back</h2>
+      <p className="ts-auth-heading__sub">Sign in to see this week&apos;s sessions.</p>
       {retrying && (
         <Alert variation="info" marginTop="16px">
           Finishing Google sign-in…
@@ -118,9 +118,9 @@ function SignInHeader() {
 
 function SignUpHeader() {
   return (
-    <div className="bj-auth-heading">
-      <h2 className="bj-auth-heading__title">Create your account</h2>
-      <p className="bj-auth-heading__sub">Set up your business and start inviting parents and tutors.</p>
+    <div className="ts-auth-heading">
+      <h2 className="ts-auth-heading__title">Create your account</h2>
+      <p className="ts-auth-heading__sub">Set up your business and start inviting parents and tutors.</p>
     </div>
   );
 }

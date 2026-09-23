@@ -30,10 +30,10 @@ function OnboardingGate() {
 
 function AppLayout() {
   return (
-    <div className="bj-app">
-      <Header />
+    <div className="ts-app">
       <SideNav />
-      <div className="bj-app__content">
+        <Header />
+      <div className="ts-app__content">
         <Outlet />
       </div>
     </div>

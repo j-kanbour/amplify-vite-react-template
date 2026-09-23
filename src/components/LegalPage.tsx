@@ -14,27 +14,27 @@ type Props = {
  */
 export default function LegalPage({ title, updated, children }: Props) {
   return (
-    <div className="bj-legal">
-      <div className="bj-legal__container">
-        <header className="bj-auth-header">
-          <img className="bj-auth-header__logo" src={logo} alt="Tutor Studio" />
-          <p className="bj-auth-header__tagline">Personalised lessons, weekly feedback.</p>
+    <div className="ts-legal">
+      <div className="ts-legal__container">
+        <header className="ts-auth-header">
+          <img className="ts-auth-header__logo" src={logo} alt="Tutor Studio" />
+          <p className="ts-auth-header__tagline">Personalised lessons, weekly feedback.</p>
         </header>
 
-        <article className="bj-legal__card">
-          <div className="bj-auth-heading">
-            <h1 className="bj-auth-heading__title">{title}</h1>
-            <p className="bj-auth-heading__sub">Last updated: {updated}</p>
+        <article className="ts-legal__card">
+          <div className="ts-auth-heading">
+            <h1 className="ts-auth-heading__title">{title}</h1>
+            <p className="ts-auth-heading__sub">Last updated: {updated}</p>
           </div>
-          <div className="bj-legal__body">{children}</div>
-          <div className="bj-legal__actions">
-            <Link to="/" className="bj-legal__back">
+          <div className="ts-legal__body">{children}</div>
+          <div className="ts-legal__actions">
+            <Link to="/" className="ts-legal__back">
               Back to sign in
             </Link>
           </div>
         </article>
 
-        <footer className="bj-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>
+        <footer className="ts-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>
       </div>
     </div>
   );

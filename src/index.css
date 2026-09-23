@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--bj-canvas);
+  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--ts-canvas);
   display: flex;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   height: 100vh;
@@ -67,39 +67,39 @@ a {
    Tutor Studio design tokens (see src/dev/System Design.png)
    ------------------------------------------------------------------ */
 :root {
-  --bj-orange: #f26b21;
-  --bj-orange-hover: #dc5c16;
-  --bj-orange-active: #c9530f;
-  --bj-orange-50: #fef2e9;
-  --bj-orange-100: #fde6d6;
-  --bj-pink: #f490c0;
-  --bj-blue: #2480e6;
-  --bj-teal: #2ebfa5;
-  --bj-gold: #fab81c;
+  --ts-orange: #f26b21;
+  --ts-orange-hover: #dc5c16;
+  --ts-orange-active: #c9530f;
+  --ts-orange-50: #fef2e9;
+  --ts-orange-100: #fde6d6;
+  --ts-pink: #f490c0;
+  --ts-blue: #2480e6;
+  --ts-teal: #2ebfa5;
+  --ts-gold: #fab81c;
 
-  --bj-canvas: #fbf6ec;
-  --bj-sunken: #f4ecdc;
-  --bj-card: #ffffff;
-  --bj-hairline: #e8dfcf;
-  --bj-ink-2: #5c5349;
-  --bj-ink: #2b2521;
+  --ts-canvas: #fbf6ec;
+  --ts-sunken: #f4ecdc;
+  --ts-card: #ffffff;
+  --ts-hairline: #e8dfcf;
+  --ts-ink-2: #5c5349;
+  --ts-ink: #2b2521;
 
-  --bj-success: #2ebfa5;
-  --bj-warning: #fab81c;
-  --bj-danger: #e5523e;
-  --bj-info: #2480e6;
+  --ts-success: #2ebfa5;
+  --ts-warning: #fab81c;
+  --ts-danger: #e5523e;
+  --ts-info: #2480e6;
 
-  --bj-font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
-  --bj-font-body: 'Nunito', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --ts-font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --ts-font-body: 'Nunito', system-ui, Avenir, Helvetica, Arial, sans-serif;
 
-  --bj-radius-sm: 8px;
-  --bj-radius-md: 12px;
-  --bj-radius-lg: 16px;
-  --bj-radius-xl: 24px;
-  --bj-radius-pill: 999px;
+  --ts-radius-sm: 8px;
+  --ts-radius-md: 12px;
+  --ts-radius-lg: 16px;
+  --ts-radius-xl: 24px;
+  --ts-radius-pill: 999px;
 
-  --bj-shadow-sm: 0 2px 6px rgba(92, 83, 73, 0.08);
-  --bj-shadow-lg: 0 16px 40px rgba(92, 83, 73, 0.14);
+  --ts-shadow-sm: 0 2px 6px rgba(92, 83, 73, 0.08);
+  --ts-shadow-lg: 0 16px 40px rgba(92, 83, 73, 0.14);
 }
 
 /* ------------------------------------------------------------------
@@ -107,7 +107,7 @@ a {
    The onboarding page shares the canvas and the Amplify theme tokens.
    ------------------------------------------------------------------ */
 [data-amplify-authenticator],
-.bj-onboarding {
+.ts-onboarding {
   position: fixed;
   inset: 0;
   display: grid;
@@ -115,121 +115,121 @@ a {
   overflow: auto;
   padding: 24px 16px;
   box-sizing: border-box;
-  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--bj-canvas);
-  font-family: var(--bj-font-body);
-  color: var(--bj-ink);
+  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--ts-canvas);
+  font-family: var(--ts-font-body);
+  color: var(--ts-ink);
 
   /* --- Amplify UI theme tokens ------------------------------------ */
-  --amplify-fonts-default-variable: var(--bj-font-body);
-  --amplify-fonts-default-static: var(--bj-font-body);
+  --amplify-fonts-default-variable: var(--ts-font-body);
+  --amplify-fonts-default-static: var(--ts-font-body);
 
-  --amplify-colors-font-primary: var(--bj-ink);
-  --amplify-colors-font-secondary: var(--bj-ink-2);
-  --amplify-colors-font-tertiary: var(--bj-ink-2);
-  --amplify-colors-font-interactive: var(--bj-orange);
-  --amplify-colors-font-hover: var(--bj-orange-hover);
-  --amplify-colors-font-active: var(--bj-orange-active);
-  --amplify-colors-font-error: var(--bj-danger);
-  --amplify-colors-font-success: var(--bj-success);
+  --amplify-colors-font-primary: var(--ts-ink);
+  --amplify-colors-font-secondary: var(--ts-ink-2);
+  --amplify-colors-font-tertiary: var(--ts-ink-2);
+  --amplify-colors-font-interactive: var(--ts-orange);
+  --amplify-colors-font-hover: var(--ts-orange-hover);
+  --amplify-colors-font-active: var(--ts-orange-active);
+  --amplify-colors-font-error: var(--ts-danger);
+  --amplify-colors-font-success: var(--ts-success);
 
-  --amplify-colors-primary-10: var(--bj-orange-50);
-  --amplify-colors-primary-20: var(--bj-orange-100);
+  --amplify-colors-primary-10: var(--ts-orange-50);
+  --amplify-colors-primary-20: var(--ts-orange-100);
   --amplify-colors-primary-40: #f7a06f;
   --amplify-colors-primary-60: #f4884a;
-  --amplify-colors-primary-80: var(--bj-orange);
-  --amplify-colors-primary-90: var(--bj-orange-hover);
-  --amplify-colors-primary-100: var(--bj-orange-active);
+  --amplify-colors-primary-80: var(--ts-orange);
+  --amplify-colors-primary-90: var(--ts-orange-hover);
+  --amplify-colors-primary-100: var(--ts-orange-active);
 
-  --amplify-colors-background-primary: var(--bj-card);
-  --amplify-colors-background-secondary: var(--bj-sunken);
-  --amplify-colors-border-primary: var(--bj-hairline);
-  --amplify-colors-border-secondary: var(--bj-hairline);
-  --amplify-colors-border-focus: var(--bj-orange);
-  --amplify-colors-border-error: var(--bj-danger);
+  --amplify-colors-background-primary: var(--ts-card);
+  --amplify-colors-background-secondary: var(--ts-sunken);
+  --amplify-colors-border-primary: var(--ts-hairline);
+  --amplify-colors-border-secondary: var(--ts-hairline);
+  --amplify-colors-border-focus: var(--ts-orange);
+  --amplify-colors-border-error: var(--ts-danger);
 
-  --amplify-radii-small: var(--bj-radius-sm);
-  --amplify-radii-medium: var(--bj-radius-md);
-  --amplify-radii-large: var(--bj-radius-lg);
-  --amplify-radii-xl: var(--bj-radius-xl);
+  --amplify-radii-small: var(--ts-radius-sm);
+  --amplify-radii-medium: var(--ts-radius-md);
+  --amplify-radii-large: var(--ts-radius-lg);
+  --amplify-radii-xl: var(--ts-radius-xl);
 
   /* Card */
-  --amplify-components-authenticator-router-background-color: var(--bj-card);
-  --amplify-components-authenticator-router-border-color: var(--bj-hairline);
+  --amplify-components-authenticator-router-background-color: var(--ts-card);
+  --amplify-components-authenticator-router-border-color: var(--ts-hairline);
   --amplify-components-authenticator-router-border-width: 1px;
   --amplify-components-authenticator-router-border-style: solid;
-  --amplify-components-authenticator-router-box-shadow: var(--bj-shadow-lg);
+  --amplify-components-authenticator-router-box-shadow: var(--ts-shadow-lg);
   --amplify-components-authenticator-form-padding: 32px;
   --amplify-components-authenticator-container-width-max: 440px;
 
   /* Tabs (Sign In / Create Account) */
-  --amplify-components-tabs-border-color: var(--bj-hairline);
+  --amplify-components-tabs-border-color: var(--ts-hairline);
   --amplify-components-tabs-border-width: 1px;
-  --amplify-components-tabs-item-color: var(--bj-ink-2);
-  --amplify-components-tabs-item-hover-color: var(--bj-orange-hover);
-  --amplify-components-tabs-item-active-color: var(--bj-orange);
-  --amplify-components-tabs-item-active-border-color: var(--bj-orange);
+  --amplify-components-tabs-item-color: var(--ts-ink-2);
+  --amplify-components-tabs-item-hover-color: var(--ts-orange-hover);
+  --amplify-components-tabs-item-active-color: var(--ts-orange);
+  --amplify-components-tabs-item-active-border-color: var(--ts-orange);
   --amplify-components-tabs-item-border-width: 2px;
   --amplify-components-tabs-item-font-weight: 700;
   --amplify-components-tabs-item-font-size: 1rem;
 
   /* Inputs */
-  --amplify-components-field-label-color: var(--bj-ink);
+  --amplify-components-field-label-color: var(--ts-ink);
   --amplify-components-field-gap: 6px;
-  --amplify-components-fieldcontrol-border-color: var(--bj-hairline);
-  --amplify-components-fieldcontrol-border-radius: var(--bj-radius-md);
-  --amplify-components-fieldcontrol-color: var(--bj-ink);
+  --amplify-components-fieldcontrol-border-color: var(--ts-hairline);
+  --amplify-components-fieldcontrol-border-radius: var(--ts-radius-md);
+  --amplify-components-fieldcontrol-color: var(--ts-ink);
   --amplify-components-fieldcontrol-padding-block-start: 12px;
   --amplify-components-fieldcontrol-padding-block-end: 12px;
   --amplify-components-fieldcontrol-padding-inline-start: 14px;
   --amplify-components-fieldcontrol-padding-inline-end: 14px;
-  --amplify-components-fieldcontrol-focus-border-color: var(--bj-orange);
-  --amplify-components-fieldcontrol-focus-box-shadow: 0 0 0 3px var(--bj-orange-100);
-  --amplify-components-fieldcontrol-error-border-color: var(--bj-danger);
+  --amplify-components-fieldcontrol-focus-border-color: var(--ts-orange);
+  --amplify-components-fieldcontrol-focus-box-shadow: 0 0 0 3px var(--ts-orange-100);
+  --amplify-components-fieldcontrol-error-border-color: var(--ts-danger);
   --amplify-components-fieldcontrol-error-focus-box-shadow: 0 0 0 3px rgba(229, 82, 62, 0.2);
   /* Input/TextField/PasswordField re-map the fieldcontrol tokens, so set those too */
-  --amplify-components-input-color: var(--bj-ink);
-  --amplify-components-input-border-color: var(--bj-hairline);
-  --amplify-components-input-focus-border-color: var(--bj-orange);
+  --amplify-components-input-color: var(--ts-ink);
+  --amplify-components-input-border-color: var(--ts-hairline);
+  --amplify-components-input-focus-border-color: var(--ts-orange);
   --amplify-components-input-font-size: 1rem;
-  --amplify-components-textfield-color: var(--bj-ink);
-  --amplify-components-textfield-border-color: var(--bj-hairline);
-  --amplify-components-textfield-focus-border-color: var(--bj-orange);
+  --amplify-components-textfield-color: var(--ts-ink);
+  --amplify-components-textfield-border-color: var(--ts-hairline);
+  --amplify-components-textfield-focus-border-color: var(--ts-orange);
   --amplify-components-textfield-font-size: 1rem;
-  --amplify-components-passwordfield-color: var(--bj-ink);
-  --amplify-components-passwordfield-button-color: var(--bj-ink-2);
-  --amplify-components-passwordfield-button-hover-background-color: var(--bj-orange-50);
-  --amplify-components-passwordfield-button-hover-border-color: var(--bj-hairline);
-  --amplify-components-passwordfield-button-hover-color: var(--bj-orange);
-  --amplify-components-passwordfield-button-focus-background-color: var(--bj-orange-50);
-  --amplify-components-passwordfield-button-focus-border-color: var(--bj-orange);
-  --amplify-components-passwordfield-button-focus-color: var(--bj-orange);
-  --amplify-components-passwordfield-button-active-background-color: var(--bj-orange-100);
-  --amplify-components-passwordfield-button-active-border-color: var(--bj-orange);
-  --amplify-components-passwordfield-button-active-color: var(--bj-orange-active);
+  --amplify-components-passwordfield-color: var(--ts-ink);
+  --amplify-components-passwordfield-button-color: var(--ts-ink-2);
+  --amplify-components-passwordfield-button-hover-background-color: var(--ts-orange-50);
+  --amplify-components-passwordfield-button-hover-border-color: var(--ts-hairline);
+  --amplify-components-passwordfield-button-hover-color: var(--ts-orange);
+  --amplify-components-passwordfield-button-focus-background-color: var(--ts-orange-50);
+  --amplify-components-passwordfield-button-focus-border-color: var(--ts-orange);
+  --amplify-components-passwordfield-button-focus-color: var(--ts-orange);
+  --amplify-components-passwordfield-button-active-background-color: var(--ts-orange-100);
+  --amplify-components-passwordfield-button-active-border-color: var(--ts-orange);
+  --amplify-components-passwordfield-button-active-color: var(--ts-orange-active);
 
   /* Buttons */
-  --amplify-components-button-border-radius: var(--bj-radius-md);
+  --amplify-components-button-border-radius: var(--ts-radius-md);
   --amplify-components-button-font-weight: 700;
-  --amplify-components-button-color: var(--bj-ink);
-  --amplify-components-button-border-color: var(--bj-hairline);
-  --amplify-components-button-hover-background-color: var(--bj-orange-50);
-  --amplify-components-button-hover-border-color: var(--bj-hairline);
-  --amplify-components-button-hover-color: var(--bj-ink);
-  --amplify-components-button-focus-box-shadow: 0 0 0 3px var(--bj-orange-100);
-  --amplify-components-button-primary-background-color: var(--bj-orange);
-  --amplify-components-button-primary-hover-background-color: var(--bj-orange-hover);
-  --amplify-components-button-primary-active-background-color: var(--bj-orange-active);
-  --amplify-components-button-primary-focus-background-color: var(--bj-orange-hover);
-  --amplify-components-button-primary-focus-box-shadow: 0 0 0 3px var(--bj-orange-100);
+  --amplify-components-button-color: var(--ts-ink);
+  --amplify-components-button-border-color: var(--ts-hairline);
+  --amplify-components-button-hover-background-color: var(--ts-orange-50);
+  --amplify-components-button-hover-border-color: var(--ts-hairline);
+  --amplify-components-button-hover-color: var(--ts-ink);
+  --amplify-components-button-focus-box-shadow: 0 0 0 3px var(--ts-orange-100);
+  --amplify-components-button-primary-background-color: var(--ts-orange);
+  --amplify-components-button-primary-hover-background-color: var(--ts-orange-hover);
+  --amplify-components-button-primary-active-background-color: var(--ts-orange-active);
+  --amplify-components-button-primary-focus-background-color: var(--ts-orange-hover);
+  --amplify-components-button-primary-focus-box-shadow: 0 0 0 3px var(--ts-orange-100);
   --amplify-components-button-primary-disabled-background-color: #f7a06f;
   --amplify-components-button-primary-color: #ffffff;
-  --amplify-components-button-link-color: var(--bj-orange);
-  --amplify-components-button-link-hover-color: var(--bj-orange-hover);
-  --amplify-components-button-link-hover-background-color: var(--bj-orange-50);
-  --amplify-components-button-link-active-background-color: var(--bj-orange-100);
+  --amplify-components-button-link-color: var(--ts-orange);
+  --amplify-components-button-link-hover-color: var(--ts-orange-hover);
+  --amplify-components-button-link-hover-background-color: var(--ts-orange-50);
+  --amplify-components-button-link-active-background-color: var(--ts-orange-100);
 
   /* Alerts (error banners) */
-  --amplify-components-alert-border-radius: var(--bj-radius-md);
+  --amplify-components-alert-border-radius: var(--ts-radius-md);
   --amplify-components-alert-error-background-color: #fdeceb;
   --amplify-components-alert-error-color: #b63a2b;
 }
@@ -242,13 +242,13 @@ a {
 
 /* Card shape (radius isn't exposed as a router token) */
 [data-amplify-authenticator] [data-amplify-router] {
-  border-radius: var(--bj-radius-xl);
+  border-radius: var(--ts-radius-xl);
   overflow: hidden;
 }
 
 /* Sign in / Create account tabs */
 [data-amplify-authenticator] .amplify-tabs__list {
-  background: var(--bj-sunken);
+  background: var(--ts-sunken);
 }
 [data-amplify-authenticator] .amplify-tabs__item {
   padding: 14px 8px;
@@ -256,7 +256,7 @@ a {
   transition: color 0.15s, border-color 0.15s, background-color 0.15s;
 }
 [data-amplify-authenticator] .amplify-tabs__item--active {
-  background: var(--bj-card);
+  background: var(--ts-card);
 }
 
 /* Field labels and inputs */
@@ -265,7 +265,7 @@ a {
   font-size: 0.95rem;
 }
 [data-amplify-authenticator] .amplify-input {
-  font-family: var(--bj-font-body);
+  font-family: var(--ts-font-body);
   font-size: 1rem;
 }
 [data-amplify-authenticator] .amplify-input::placeholder {
@@ -284,7 +284,7 @@ a {
 [data-amplify-authenticator] .amplify-button--primary {
   padding: 13px 20px;
   font-size: 1rem;
-  box-shadow: var(--bj-shadow-sm);
+  box-shadow: var(--ts-shadow-sm);
   transition: background-color 0.15s, transform 0.1s;
 }
 [data-amplify-authenticator] .amplify-button--primary:active {
@@ -295,7 +295,7 @@ a {
 }
 
 /* Brand header above the card */
-.bj-auth-header {
+.ts-auth-header {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -303,78 +303,78 @@ a {
   padding-bottom: 24px;
   text-align: center;
 }
-.bj-auth-header__logo {
+.ts-auth-header__logo {
   width: 300px;
   height: auto;
   display: block;
 }
-.bj-auth-header__tagline {
+.ts-auth-header__tagline {
   margin: 0;
-  color: var(--bj-ink-2);
+  color: var(--ts-ink-2);
   font-size: 0.95rem;
   font-weight: 600;
 }
 
 /* Headings inside the card (Sign in / Create account) */
-.bj-auth-heading {
+.ts-auth-heading {
   padding: 28px 32px 0;
 }
-.bj-auth-heading__title {
+.ts-auth-heading__title {
   margin: 0 0 4px;
-  font-family: var(--bj-font-display);
+  font-family: var(--ts-font-display);
   font-weight: 600;
   font-size: 1.75rem;
   line-height: 1.15;
   letter-spacing: -0.01em;
-  color: var(--bj-ink);
+  color: var(--ts-ink);
 }
-.bj-auth-heading__sub {
+.ts-auth-heading__sub {
   margin: 0;
-  color: var(--bj-ink-2);
+  color: var(--ts-ink-2);
   font-size: 0.95rem;
 }
 
 /* Footer under the card */
-.bj-auth-footer {
+.ts-auth-footer {
   padding-top: 20px;
   text-align: center;
-  color: var(--bj-ink-2);
+  color: var(--ts-ink-2);
   font-size: 0.85rem;
 }
 
 /* ------------------------------------------------------------------
    Onboarding (Google sign-ups): legal-page card at the auth card's width
    ------------------------------------------------------------------ */
-.bj-onboarding__container {
+.ts-onboarding__container {
   max-width: var(--amplify-components-authenticator-container-width-max);
 }
-.bj-onboarding__form {
+.ts-onboarding__form {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 24px 32px 32px;
   text-align: left;
 }
-.bj-onboarding__account {
+.ts-onboarding__account {
   margin: 0;
-  color: var(--bj-ink-2);
+  color: var(--ts-ink-2);
   font-size: 0.95rem;
 }
-.bj-onboarding .amplify-label {
+.ts-onboarding .amplify-label {
   font-weight: 700;
   font-size: 0.95rem;
 }
-.bj-onboarding .amplify-button--primary {
+.ts-onboarding .amplify-button--primary {
   padding: 13px 20px;
   font-size: 1rem;
-  box-shadow: var(--bj-shadow-sm);
+  box-shadow: var(--ts-shadow-sm);
 }
-.bj-onboarding .amplify-button--link {
+.ts-onboarding .amplify-button--link {
   font-weight: 700;
 }
 
 @media (max-width: 480px) {
-  .bj-onboarding__form {
+  .ts-onboarding__form {
     padding: 20px 24px 24px;
   }
 }
@@ -382,7 +382,7 @@ a {
 /* ------------------------------------------------------------------
    Public legal pages (Privacy, Terms): same shell as the auth screen
    ------------------------------------------------------------------ */
-.bj-legal {
+.ts-legal {
   position: fixed;
   inset: 0;
   display: grid;
@@ -390,69 +390,69 @@ a {
   overflow: auto;
   padding: 24px 16px;
   box-sizing: border-box;
-  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--bj-canvas);
-  font-family: var(--bj-font-body);
-  color: var(--bj-ink);
+  background: url('./assets/auth-page_background.svg') center / cover no-repeat, var(--ts-canvas);
+  font-family: var(--ts-font-body);
+  color: var(--ts-ink);
 }
-.bj-legal__container {
+.ts-legal__container {
   width: 100%;
   max-width: 720px;
   padding: 24px 0;
 }
-.bj-legal__card {
-  background: var(--bj-card);
-  border: 1px solid var(--bj-hairline);
-  border-radius: var(--bj-radius-xl);
-  box-shadow: var(--bj-shadow-lg);
+.ts-legal__card {
+  background: var(--ts-card);
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-xl);
+  box-shadow: var(--ts-shadow-lg);
   overflow: hidden;
 }
-.bj-legal__body {
+.ts-legal__body {
   padding: 8px 32px 0;
   text-align: left;
   line-height: 1.6;
 }
-.bj-legal__body h2 {
+.ts-legal__body h2 {
   margin: 24px 0 6px;
-  font-family: var(--bj-font-display);
+  font-family: var(--ts-font-display);
   font-weight: 600;
   font-size: 1.15rem;
-  color: var(--bj-ink);
+  color: var(--ts-ink);
 }
-.bj-legal__body p {
+.ts-legal__body p {
   margin: 0 0 12px;
-  color: var(--bj-ink-2);
+  color: var(--ts-ink-2);
   font-size: 0.95rem;
 }
-.bj-legal__actions {
+.ts-legal__actions {
   padding: 24px 32px 32px;
 }
-.bj-legal__back {
+.ts-legal__back {
   display: inline-block;
   width: 100%;
   box-sizing: border-box;
   padding: 13px 20px;
-  border-radius: var(--bj-radius-md);
-  background: var(--bj-orange);
+  border-radius: var(--ts-radius-md);
+  background: var(--ts-orange);
   color: #ffffff;
   font-weight: 700;
   font-size: 1rem;
   text-align: center;
-  box-shadow: var(--bj-shadow-sm);
+  box-shadow: var(--ts-shadow-sm);
   transition: background-color 0.15s, transform 0.1s;
 }
-.bj-legal__back:hover {
-  background: var(--bj-orange-hover);
+.ts-legal__back:hover {
+  background: var(--ts-orange-hover);
 }
-.bj-legal__back:active {
-  background: var(--bj-orange-active);
+.ts-legal__back:active {
+  background: var(--ts-orange-active);
   transform: translateY(1px);
 }
 
 @media (max-width: 480px) {
-  .bj-legal__body {
+  .ts-legal__body {
     padding: 8px 24px 0;
   }
-  .bj-legal__actions {
+  .ts-legal__actions {
     padding: 20px 24px 24px;
   }
 }
@@ -461,33 +461,34 @@ a {
   [data-amplify-authenticator] {
     --amplify-components-authenticator-form-padding: 24px;
   }
-  .bj-auth-heading {
+  .ts-auth-heading {
     padding: 24px 24px 0;
   }
-  .bj-auth-heading__title {
+  .ts-auth-heading__title {
     font-size: 1.5rem;
   }
 }
 
 /* ------------------------------------------------------------------
-   Signed-in app shell: top header, left icon rail, scrolling content
+   Signed-in app shell: full-height left icon rail, header beside it,
+   scrolling content
    ------------------------------------------------------------------ */
-.bj-app {
-  --bj-header-h: 64px;
-  --bj-rail-w: 68px;
-  --bj-rail-w-open: 220px;
+.ts-app {
+  --ts-header-h: 64px;
+  --ts-rail-w: 68px;
+  --ts-rail-w-open: 220px;
 
   position: fixed;
   inset: 0;
-  background: var(--bj-canvas);
-  font-family: var(--bj-font-body);
-  color: var(--bj-ink);
+  background: var(--ts-canvas);
+  font-family: var(--ts-font-body);
+  color: var(--ts-ink);
 }
 
-.bj-app__content {
+.ts-app__content {
   position: absolute;
-  top: var(--bj-header-h);
-  left: var(--bj-rail-w);
+  top: var(--ts-header-h);
+  left: var(--ts-rail-w);
   right: 0;
   bottom: 0;
   overflow: auto;
@@ -495,217 +496,233 @@ a {
   box-sizing: border-box;
 }
 
-/* Header */
-.bj-header {
+/* Header: starts where the rail ends */
+.ts-header {
   position: absolute;
-  inset: 0 0 auto 0;
-  height: var(--bj-header-h);
+  inset: 0 0 auto var(--ts-rail-w);
+  height: var(--ts-header-h);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 16px;
   padding: 0 20px;
   box-sizing: border-box;
-  background: var(--bj-card);
-  border-bottom: 1px solid var(--bj-hairline);
+  background: var(--ts-card);
+  border-bottom: 1px solid var(--ts-hairline);
   z-index: 20;
 }
-.bj-header__start {
+.ts-header__start {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
-.bj-header__logo {
-  width: 40px;
-  height: 40px;
-  flex: none;
-}
-.bj-header__brand {
-  font-family: var(--bj-font-display);
+.ts-header__page {
+  margin: 0;
+  font-family: var(--ts-font-display);
   font-weight: 700;
   font-size: 1.3rem;
+  color: var(--ts-ink);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.bj-header__brand-tutor {
-  color: var(--bj-orange);
-}
-.bj-header__brand-studio {
-  color: var(--bj-blue);
-}
-.bj-header__title {
-  font-family: var(--bj-font-display);
+.ts-header__title {
+  font-family: var(--ts-font-display);
   font-weight: 600;
   font-size: 1.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.bj-header__end {
+.ts-header__end {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
 }
-.bj-header__icon-btn {
+.ts-header__icon-btn {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
   padding: 0;
-  border-radius: var(--bj-radius-pill);
+  border-radius: var(--ts-radius-pill);
   border: 1px solid transparent;
   background: transparent;
-  color: var(--bj-ink-2);
+  color: var(--ts-ink-2);
   transition: background-color 0.15s, color 0.15s;
 }
-.bj-header__icon-btn:hover {
-  background: var(--bj-orange-50);
+.ts-header__icon-btn:hover {
+  background: var(--ts-orange-50);
   border-color: transparent;
-  color: var(--bj-orange);
+  color: var(--ts-orange);
 }
-.bj-header__user {
+.ts-header__user {
   position: relative;
 }
-.bj-header__avatar {
+.ts-header__avatar {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
   padding: 0;
-  border-radius: var(--bj-radius-pill);
-  border: 2px solid var(--bj-card);
-  background: var(--bj-orange);
+  border-radius: var(--ts-radius-pill);
+  border: 2px solid var(--ts-card);
+  background: var(--ts-orange);
   color: #ffffff;
   font-weight: 700;
   font-size: 0.9rem;
-  box-shadow: 0 0 0 1px var(--bj-hairline);
+  box-shadow: 0 0 0 1px var(--ts-hairline);
 }
-.bj-header__avatar:hover {
-  background: var(--bj-orange-hover);
-  border-color: var(--bj-card);
+.ts-header__avatar:hover {
+  background: var(--ts-orange-hover);
+  border-color: var(--ts-card);
 }
-.bj-header__menu {
+.ts-header__menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
   min-width: 220px;
-  background: var(--bj-card);
-  border: 1px solid var(--bj-hairline);
-  border-radius: var(--bj-radius-md);
-  box-shadow: var(--bj-shadow-lg);
+  background: var(--ts-card);
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-md);
+  box-shadow: var(--ts-shadow-lg);
   overflow: hidden;
   text-align: left;
 }
-.bj-header__menu-info {
+.ts-header__menu-info {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--bj-hairline);
+  border-bottom: 1px solid var(--ts-hairline);
 }
-.bj-header__menu-name {
+.ts-header__menu-name {
   font-weight: 700;
 }
-.bj-header__menu-email {
-  color: var(--bj-ink-2);
+.ts-header__menu-email {
+  color: var(--ts-ink-2);
   font-size: 0.85rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.bj-header__menu-item {
+.ts-header__menu-item {
   display: block;
   width: 100%;
   padding: 12px 16px;
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--bj-ink);
+  color: var(--ts-ink);
   text-align: left;
   font-weight: 600;
 }
-.bj-header__menu-item:hover {
-  background: var(--bj-orange-50);
-  color: var(--bj-orange);
+.ts-header__menu-item:hover {
+  background: var(--ts-orange-50);
+  color: var(--ts-orange);
 }
 
-/* Left rail: icons only, expands over the content on hover (or keyboard focus,
-   but not the focus left behind by a mouse click) */
-.bj-sidenav {
+/* Left rail: full height, icons only, expands over the page on hover (or
+   keyboard focus, but not the focus left behind by a mouse click) */
+.ts-sidenav {
   position: absolute;
-  top: var(--bj-header-h);
+  top: 0;
   left: 0;
   bottom: 0;
-  width: var(--bj-rail-w);
+  width: var(--ts-rail-w);
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 12px 10px;
   box-sizing: border-box;
-  background: var(--bj-orange);
+  background: var(--ts-orange);
   overflow: hidden;
-  z-index: 10;
+  z-index: 30;
   transition: width 0.2s ease, box-shadow 0.2s ease;
 }
-.bj-sidenav:hover,
-.bj-sidenav:has(:focus-visible) {
-  width: var(--bj-rail-w-open);
-  box-shadow: var(--bj-shadow-lg);
+.ts-sidenav:hover,
+.ts-sidenav:has(:focus-visible) {
+  width: var(--ts-rail-w-open);
+  box-shadow: var(--ts-shadow-lg);
 }
-.bj-sidenav__link {
+/* Logo sits in the same 44px row as the links so it lines up with their icons */
+.ts-sidenav__brand {
   display: flex;
   align-items: center;
   gap: 14px;
   height: 44px;
   padding: 0 13px;
-  border-radius: var(--bj-radius-md);
+  margin-bottom: 8px;
+  font-family: var(--ts-font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  white-space: nowrap;
+}
+.ts-sidenav__logo {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+.ts-sidenav__brand-tutor,
+.ts-sidenav__brand-studio {
+  color: #ffffff;
+}
+
+.ts-sidenav__link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 44px;
+  padding: 0 13px;
+  border-radius: var(--ts-radius-md);
   color: #ffffff;
   font-weight: 700;
   white-space: nowrap;
   transition: background-color 0.15s, color 0.15s;
 }
-.bj-sidenav__link:hover {
-  background: var(--bj-orange-hover);
+.ts-sidenav__link:hover {
+  background: var(--ts-orange-hover);
   color: #ffffff;
 }
-.bj-sidenav__link--active,
-.bj-sidenav__link--active:hover {
-  background: var(--bj-orange-active);
+.ts-sidenav__link--active,
+.ts-sidenav__link--active:hover {
+  background: var(--ts-orange-active);
   color: #ffffff;
 }
-.bj-sidenav__link:focus-visible {
+.ts-sidenav__link:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: -2px;
 }
-.bj-sidenav__icon {
+.ts-sidenav__icon {
   display: grid;
   place-items: center;
   flex: none;
 }
-.bj-sidenav__label {
+.ts-sidenav__label {
   opacity: 0;
   transition: opacity 0.15s ease;
 }
-.bj-sidenav:hover .bj-sidenav__label,
-.bj-sidenav:has(:focus-visible) .bj-sidenav__label {
+.ts-sidenav:hover .ts-sidenav__label,
+.ts-sidenav:has(:focus-visible) .ts-sidenav__label {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bj-sidenav,
-  .bj-sidenav__label {
+  .ts-sidenav,
+  .ts-sidenav__label {
     transition: none;
   }
 }
 
 @media (max-width: 480px) {
-  .bj-header {
+  .ts-header {
     padding: 0 12px;
   }
-  .bj-header__title {
+  .ts-header__title {
     font-size: 1.05rem;
   }
-  .bj-header__brand {
-    display: none;
+  .ts-header__page {
+    font-size: 1.05rem;
   }
-  .bj-app__content {
+  .ts-app__content {
     padding: 16px;
   }
 }

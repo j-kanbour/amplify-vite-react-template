@@ -54,24 +54,24 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="bj-onboarding">
-      <div className="bj-legal__container bj-onboarding__container">
-        <header className="bj-auth-header">
-          <img className="bj-auth-header__logo" src={logo} alt="Tutor Studio" />
-          <p className="bj-auth-header__tagline">Personalised lessons, weekly feedback.</p>
+    <div className="ts-onboarding">
+      <div className="ts-legal__container ts-onboarding__container">
+        <header className="ts-auth-header">
+          <img className="ts-auth-header__logo" src={logo} alt="Tutor Studio" />
+          <p className="ts-auth-header__tagline">Personalised lessons, weekly feedback.</p>
         </header>
 
-        <div className="bj-legal__card">
-          <div className="bj-auth-heading">
-            <h1 className="bj-auth-heading__title">Set up your business</h1>
-            <p className="bj-auth-heading__sub">
+        <div className="ts-legal__card">
+          <div className="ts-auth-heading">
+            <h1 className="ts-auth-heading__title">Set up your business</h1>
+            <p className="ts-auth-heading__sub">
               One last step before you can start inviting parents and tutors.
             </p>
           </div>
 
-          <form className="bj-onboarding__form" onSubmit={handleSubmit}>
+          <form className="ts-onboarding__form" onSubmit={handleSubmit}>
             {email && (
-              <p className="bj-onboarding__account">
+              <p className="ts-onboarding__account">
                 Signed in as <strong>{email}</strong>
               </p>
             )}
@@ -134,7 +134,7 @@ export default function Onboarding() {
           </form>
         </div>
 
-        <footer className="bj-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>
+        <footer className="ts-auth-footer">© {new Date().getFullYear()} Tutor Studio</footer>
       </div>
     </div>
   );
