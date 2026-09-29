@@ -470,142 +470,320 @@ a {
 }
 
 /* ------------------------------------------------------------------
-   Signed-in app shell: full-height left icon rail, header beside it,
-   scrolling content
+   Signed-in app shell: full-height sidebar on the left, header and
+   scrolling content beside it
    ------------------------------------------------------------------ */
 .ts-app {
-  --ts-header-h: 64px;
-  --ts-rail-w: 68px;
-  --ts-rail-w-open: 220px;
+  --ts-rail-w: 76px;
+  --ts-rail-w-open: 232px;
+  --ts-header-h: 76px;
+  --ts-sidebar-bg: #fffcf6;
 
   position: fixed;
   inset: 0;
+  display: grid;
+  grid-template-columns: var(--ts-rail-w) minmax(0, 1fr);
   background: var(--ts-canvas);
   font-family: var(--ts-font-body);
   color: var(--ts-ink);
+  text-align: left;
+}
+
+.ts-app__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 .ts-app__content {
-  position: absolute;
-  top: var(--ts-header-h);
-  left: var(--ts-rail-w);
-  right: 0;
-  bottom: 0;
+  flex: 1;
   overflow: auto;
   padding: 24px;
   box-sizing: border-box;
 }
 
-/* Header: starts where the rail ends */
+/* Header: page name, universal search, notifications */
 .ts-header {
-  position: absolute;
-  inset: 0 0 auto var(--ts-rail-w);
+  flex: none;
   height: var(--ts-header-h);
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 16px;
-  padding: 0 20px;
-  box-sizing: border-box;
-  background: var(--ts-card);
-  border-bottom: 1px solid var(--ts-hairline);
-  z-index: 20;
-}
-.ts-header__start {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  gap: 24px;
+  padding: 0 24px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--ts-hairline);
 }
 .ts-header__page {
   margin: 0;
   font-family: var(--ts-font-display);
-  font-weight: 700;
-  font-size: 1.3rem;
+  font-weight: 600;
+  font-size: 1.4rem;
   color: var(--ts-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ts-header__title {
-  font-family: var(--ts-font-display);
-  font-weight: 600;
-  font-size: 1.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ts-header__end {
+.ts-header__search {
+  flex: 0 1 280px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background: var(--ts-card);
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-md);
+  color: #8f877d;
+}
+.ts-header__search-icon {
+  flex: none;
+  font-size: 1.05rem;
+}
+.ts-header__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--ts-ink);
+}
+.ts-header__search input::placeholder {
+  color: #8f877d;
+}
+.ts-header__search input:disabled {
+  cursor: default;
 }
 .ts-header__icon-btn {
+  position: relative;
   display: grid;
   place-items: center;
+  flex: none;
   width: 40px;
   height: 40px;
+  margin-left: auto;
   padding: 0;
-  border-radius: var(--ts-radius-pill);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--ts-ink-2);
+  border-radius: var(--ts-radius-md);
+  border: 1px solid var(--ts-hairline);
+  background: var(--ts-card);
+  color: var(--ts-ink);
+  font-size: 1.15rem;
   transition: background-color 0.15s, color 0.15s;
 }
 .ts-header__icon-btn:hover {
   background: var(--ts-orange-50);
-  border-color: transparent;
+  border-color: var(--ts-hairline);
   color: var(--ts-orange);
 }
-.ts-header__user {
+
+/* Sidebar */
+/* Sidebar: an icon rail that expands over the page on hover (or keyboard
+   focus, or while the account menu is open). Paddings are fixed so the icons
+   don't shift as it opens; text is clipped, then faded in. */
+.ts-sidenav {
   position: relative;
+  z-index: 30;
+  width: var(--ts-rail-w);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--ts-sidebar-bg);
+  border-right: 1px solid var(--ts-hairline);
+  transition: width 0.2s ease, box-shadow 0.2s ease;
 }
-.ts-header__avatar {
+.ts-sidenav:hover,
+.ts-sidenav:has(:focus-visible),
+.ts-sidenav:has([aria-expanded='true']) {
+  width: var(--ts-rail-w-open);
+  box-shadow: var(--ts-shadow-lg);
+}
+.ts-sidenav__org-text,
+.ts-sidenav__org-chevron,
+.ts-sidenav__label,
+.ts-sidenav__user-text,
+.ts-sidenav__user-gear {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.ts-sidenav:hover :is(.ts-sidenav__org-text, .ts-sidenav__org-chevron, .ts-sidenav__label, .ts-sidenav__user-text, .ts-sidenav__user-gear),
+.ts-sidenav:has(:focus-visible) :is(.ts-sidenav__org-text, .ts-sidenav__org-chevron, .ts-sidenav__label, .ts-sidenav__user-text, .ts-sidenav__user-gear),
+.ts-sidenav:has([aria-expanded='true']) :is(.ts-sidenav__org-text, .ts-sidenav__org-chevron, .ts-sidenav__label, .ts-sidenav__user-text, .ts-sidenav__user-gear) {
+  opacity: 1;
+}
+
+.ts-sidenav__org {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px;
+  background: var(--ts-card);
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-md);
+  box-shadow: var(--ts-shadow-sm);
+}
+.ts-sidenav__org-logo {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: var(--ts-radius-pill);
-  border: 2px solid var(--ts-card);
-  background: var(--ts-orange);
-  color: #ffffff;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ts-radius-sm);
+  background: var(--ts-orange-100);
+  color: var(--ts-orange);
+  font-family: var(--ts-font-display);
   font-weight: 700;
   font-size: 0.9rem;
-  box-shadow: 0 0 0 1px var(--ts-hairline);
 }
-.ts-header__avatar:hover {
-  background: var(--ts-orange-hover);
-  border-color: var(--ts-card);
+.ts-sidenav__org-text,
+.ts-sidenav__user-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
 }
-.ts-header__menu {
+.ts-sidenav__org-name,
+.ts-sidenav__user-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ts-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ts-sidenav__org-sub,
+.ts-sidenav__user-role {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ts-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ts-sidenav__org-chevron,
+.ts-sidenav__user-gear {
+  flex: none;
+  color: var(--ts-ink-2);
+}
+
+.ts-sidenav__links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.ts-sidenav__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 17px;
+  flex: none;
+  border-radius: var(--ts-radius-md);
+  color: var(--ts-ink-2);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
+}
+.ts-sidenav__link:hover {
+  background: var(--ts-sunken);
+  color: var(--ts-ink);
+}
+.ts-sidenav__link--active,
+.ts-sidenav__link--active:hover {
+  background: var(--ts-orange-100);
+  color: var(--ts-orange);
+}
+.ts-sidenav__link:focus-visible {
+  outline: 2px solid var(--ts-orange);
+  outline-offset: -2px;
+}
+.ts-sidenav__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  font-size: 1.15rem;
+}
+
+/* Account card + menu (opens upwards) */
+.ts-sidenav__account {
+  position: relative;
+}
+.ts-sidenav__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px;
+  border: 1px solid transparent;
+  border-radius: var(--ts-radius-md);
+  background: var(--ts-sunken);
+  color: var(--ts-ink);
+  text-align: left;
+  font-weight: 400;
+}
+.ts-sidenav__user:hover,
+.ts-sidenav__user[aria-expanded='true'] {
+  border-color: var(--ts-hairline);
+  background: var(--ts-orange-50);
+}
+.ts-sidenav__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ts-radius-pill);
+  background: var(--ts-teal);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.ts-sidenav__menu {
   position: absolute;
-  top: calc(100% + 8px);
+  bottom: calc(100% + 8px);
+  left: 0;
   right: 0;
-  min-width: 220px;
+  min-width: 200px;
   background: var(--ts-card);
   border: 1px solid var(--ts-hairline);
   border-radius: var(--ts-radius-md);
   box-shadow: var(--ts-shadow-lg);
   overflow: hidden;
-  text-align: left;
+  z-index: 40;
 }
-.ts-header__menu-info {
+.ts-sidenav__menu-info {
   padding: 12px 16px;
   border-bottom: 1px solid var(--ts-hairline);
 }
-.ts-header__menu-name {
+.ts-sidenav__menu-name {
   font-weight: 700;
 }
-.ts-header__menu-email {
+.ts-sidenav__menu-email {
   color: var(--ts-ink-2);
   font-size: 0.85rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ts-header__menu-item {
-  display: block;
+.ts-sidenav__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   padding: 12px 16px;
   border: 0;
@@ -615,114 +793,36 @@ a {
   text-align: left;
   font-weight: 600;
 }
-.ts-header__menu-item:hover {
+.ts-sidenav__menu-item:hover {
   background: var(--ts-orange-50);
   color: var(--ts-orange);
 }
 
-/* Left rail: full height, icons only, expands over the page on hover (or
-   keyboard focus, but not the focus left behind by a mouse click) */
-.ts-sidenav {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: var(--ts-rail-w);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 10px;
-  box-sizing: border-box;
-  background: var(--ts-orange);
-  overflow: hidden;
-  z-index: 30;
-  transition: width 0.2s ease, box-shadow 0.2s ease;
-}
-.ts-sidenav:hover,
-.ts-sidenav:has(:focus-visible) {
-  width: var(--ts-rail-w-open);
-  box-shadow: var(--ts-shadow-lg);
-}
-/* Logo sits in the same 44px row as the links so it lines up with their icons */
-.ts-sidenav__brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  height: 44px;
-  padding: 0 13px;
-  margin-bottom: 8px;
-  font-family: var(--ts-font-display);
-  font-weight: 700;
-  font-size: 1.15rem;
-  white-space: nowrap;
-}
-.ts-sidenav__logo {
-  width: 30px;
-  height: 30px;
-  display: block;
-}
-.ts-sidenav__brand-tutor,
-.ts-sidenav__brand-studio {
-  color: #ffffff;
-}
-
-.ts-sidenav__link {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  height: 44px;
-  padding: 0 13px;
-  border-radius: var(--ts-radius-md);
-  color: #ffffff;
-  font-weight: 700;
-  white-space: nowrap;
-  transition: background-color 0.15s, color 0.15s;
-}
-.ts-sidenav__link:hover {
-  background: var(--ts-orange-hover);
-  color: #ffffff;
-}
-.ts-sidenav__link--active,
-.ts-sidenav__link--active:hover {
-  background: var(--ts-orange-active);
-  color: #ffffff;
-}
-.ts-sidenav__link:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: -2px;
-}
-.ts-sidenav__icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-.ts-sidenav__label {
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-.ts-sidenav:hover .ts-sidenav__label,
-.ts-sidenav:has(:focus-visible) .ts-sidenav__label {
-  opacity: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .ts-sidenav,
-  .ts-sidenav__label {
+  .ts-sidenav * {
     transition: none;
   }
 }
 
-@media (max-width: 480px) {
-  .ts-header {
-    padding: 0 12px;
+@media (max-width: 800px) {
+  .ts-app {
+    --ts-header-h: 64px;
   }
-  .ts-header__title {
-    font-size: 1.05rem;
+  .ts-header {
+    gap: 12px;
+    padding: 0 16px;
   }
   .ts-header__page {
-    font-size: 1.05rem;
+    font-size: 1.15rem;
   }
   .ts-app__content {
     padding: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .ts-header__search {
+    display: none;
   }
 }

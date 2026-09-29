@@ -32,9 +32,11 @@ function AppLayout() {
   return (
     <div className="ts-app">
       <SideNav />
+      <div className="ts-app__main">
         <Header />
-      <div className="ts-app__content">
-        <Outlet />
+        <div className="ts-app__content">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
