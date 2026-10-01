@@ -11,6 +11,8 @@ import Invites from './pages/Invites';
 import Onboarding from './pages/Onboarding';
 import Privacy from './pages/Privacy';
 import TermsAndConditions from './pages/TermsAndConditions';
+import UserProfile from './pages/UserProfile';
+import OrgProfile from './pages/OrgProfile';
 
 /**
  * Keeps signed-in users who haven't finished onboarding on /onboarding (and
@@ -58,8 +60,12 @@ function AuthedApp() {
             <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<UserProfile />} />
               <Route element={<RequirePermission permission="users.invite" />}>
                 <Route path="/invites" element={<Invites />} />
+              </Route>
+              <Route element={<RequirePermission permission="org.edit" />}>
+                <Route path="/organisation" element={<OrgProfile />} />
               </Route>
               <Route path="*" element={<h1>404</h1>} />
             </Route>

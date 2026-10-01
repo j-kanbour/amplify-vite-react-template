@@ -12,6 +12,12 @@ const schema = a
         subscription: a.enum(['free','premium','corporate']),
         users: a.hasMany('User', 'orgId'),
         initialSize: a.enum(ORG_SIZES),
+        // contact details shown on the org profile, edited by admins
+        contactEmail: a.email(),
+        phone: a.string(),
+        website: a.string(),
+        address: a.string(),
+        businessNumber: a.string(),
         memberships: a.hasMany('Membership', 'orgId'),
         enrollments: a.hasMany('Enrollment', 'orgId'),
         resources: a.hasMany('Resource', 'orgId'),
@@ -26,6 +32,7 @@ const schema = a
       .model({
         name: a.string().required(),
         email: a.string().required(),
+        phone: a.string(),
         termsVersion: a.string(),
         privacyVersion: a.string(),
         role: a.enum(['Admin', 'Tutor', 'Parent']),

@@ -7,6 +7,7 @@ export type Group = (typeof GROUPS)[number];
 
 export const permissions = {
   'org.view':       ['Admin', 'Tutor', 'Parent'],
+  'org.edit':       ['Admin'],
   'users.list':     ['Admin'],
   'users.invite':   ['Admin'],
   'students.view':  ['Admin', 'Tutor'],

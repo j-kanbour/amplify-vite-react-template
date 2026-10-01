@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useUser } from '../context/UserContext';
 import type { Permission } from '../access';
-import { LuHouse, LuGraduationCap, LuUsers, LuSettings, LuLogOut, LuChevronsUpDown } from 'react-icons/lu';
+import { initials } from '../utils/initials';
+import { LuHouse, LuGraduationCap, LuUsers, LuBuilding2, LuUser, LuSettings, LuLogOut, LuChevronsUpDown } from 'react-icons/lu';
 
 export type NavItem = { to: string; label: string; icon: ReactNode; permission?: Permission };
 
@@ -25,20 +26,21 @@ export const NAV_ITEMS: NavItem[] = [
     permission: 'users.invite',
     icon: <LuUsers />,
   },
+  {
+    to: '/organisation',
+    label: 'Organisation',
+    permission: 'org.edit',
+    icon: <LuBuilding2 />,
+  },
 ];
 
-function initials(name?: string | null) {
-  if (!name) return '?';
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || '?';
-}
-
-const PLAN_LABELS: Record<string, string> = { free: 'Free plan', premium: 'Premium plan', corporate: 'Corporate plan' };
+export const PLAN_LABELS: Record<string, string> = { free: 'Free plan', premium: 'Premium plan', corporate: 'Corporate plan' };
 
 /** Full-height sidebar: organisation at the top, the modules the user can reach, and the account menu at the bottom. */
 export default function SideNav() {
   const { signOut } = useAuthenticator();
   const { can, user, org, groups, subscription } = useUser();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -91,6 +93,17 @@ export default function SideNav() {
               <div className="ts-sidenav__menu-name">{user?.name}</div>
               <div className="ts-sidenav__menu-email">{user?.email}</div>
             </div>
+            <button
+              type="button"
+              role="menuitem"
+              className="ts-sidenav__menu-item"
+              onClick={() => {
+                setMenuOpen(false);
+                navigate('/profile');
+              }}
+            >
+              <LuUser /> Profile
+            </button>
             {/* TODO: settings page */}
             <button type="button" role="menuitem" className="ts-sidenav__menu-item" onClick={() => setMenuOpen(false)}>
               <LuSettings /> Settings

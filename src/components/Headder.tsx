@@ -2,12 +2,15 @@ import { useLocation } from 'react-router-dom';
 import { LuBell, LuSearch } from 'react-icons/lu';
 import { NAV_ITEMS } from './SideNav';
 
+// Named pages that aren't in the sidebar
+const OTHER_PAGES = [{ to: '/profile', label: 'My profile' }];
+
 /** Top bar beside the sidebar: page name on the left, universal search, notifications on the right. */
 export default function Header() {
   const { pathname } = useLocation();
-  // The nav items are the named pages, so they double as the page-name lookup.
+  // The nav items are most of the named pages, so they double as the page-name lookup.
   const pageName =
-    NAV_ITEMS.find((i) => (i.to === '/' ? pathname === '/' : pathname.startsWith(i.to)))?.label ?? '';
+    [...NAV_ITEMS, ...OTHER_PAGES].find((i) => (i.to === '/' ? pathname === '/' : pathname.startsWith(i.to)))?.label ?? '';
 
   return (
     <header className="ts-header">
