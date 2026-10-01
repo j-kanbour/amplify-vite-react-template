@@ -1135,6 +1135,45 @@ a {
   font-size: 1.2rem;
 }
 
+.ts-directory__filters {
+  display: flex;
+  padding: 3px;
+  border-radius: var(--ts-radius-md);
+  background: var(--ts-sunken);
+}
+.ts-directory__filter {
+  flex: 1 1 auto;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: var(--ts-radius-sm);
+  background: transparent;
+  color: var(--ts-ink-2);
+  font-weight: 700;
+  font-size: 0.78rem;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.ts-directory__filter:hover {
+  color: var(--ts-ink);
+}
+.ts-directory__filter[aria-pressed='true'] {
+  background: var(--ts-card);
+  color: var(--ts-orange-active);
+  box-shadow: var(--ts-shadow-sm);
+}
+.ts-directory__filter:focus-visible {
+  outline: 2px solid var(--ts-orange);
+  outline-offset: -2px;
+}
+.ts-directory__you {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: var(--ts-radius-pill);
+  background: var(--ts-sunken);
+  color: var(--ts-ink-2);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 /* Selected person */
 .ts-directory__detail {
   display: flex;
@@ -1180,6 +1219,27 @@ a {
   color: var(--ts-ink-2);
   font-size: 0.9rem;
   overflow-wrap: anywhere;
+}
+.ts-directory__hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ts-directory__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-md);
+  color: var(--ts-ink);
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background-color 0.15s, color 0.15s;
+}
+.ts-directory__action:hover {
+  background: var(--ts-orange-50);
+  color: var(--ts-orange);
 }
 .ts-directory__pill {
   flex: none;

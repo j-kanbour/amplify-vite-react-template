@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, Button } from '@aws-amplify/ui-react';
 import {
@@ -6,11 +6,14 @@ import {
   LuChevronRight,
   LuGraduationCap,
   LuListTodo,
+  LuMail,
+  LuPhone,
   LuReceipt,
   LuSearch,
   LuUserPlus,
 } from 'react-icons/lu';
 import { useUser } from '../context/UserContext';
+import Show from '../components/Show';
 import { useOrgUsers } from '../data/useOrgUsers';
 import type { User } from '../data/useUsers';
 import { avatarColor, initials } from '../utils/initials';
@@ -18,15 +21,16 @@ import { avatarColor, initials } from '../utils/initials';
 const formatDate = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : null;
 
-/** What a new employee has to do before they count as onboarded. Derived from their User record until invites track it. */
-function onboardingSteps(u: User) {
-  return [
-    { label: 'Account created', done: true },
-    { label: 'Accepted terms of service', done: !!u.termsVersion },
-    { label: 'Accepted privacy policy', done: !!u.privacyVersion },
-    { label: 'Added a phone number', done: !!u.phone },
-  ];
-}
+/** Accepted the legal terms and added a phone number. Derived from the User record until invites track onboarding. */
+const isOnboarded = (u: User) => !!u.termsVersion && !!u.privacyVersion && !!u.phone;
+
+const FILTERS = [
+  { key: 'all', label: 'All', test: () => true },
+  { key: 'admin', label: 'Admins', test: (u: User) => u.role === 'Admin' },
+  { key: 'tutor', label: 'Tutors', test: (u: User) => u.role === 'Tutor' },
+  { key: 'onboarding', label: 'Onboarding', test: (u: User) => !isOnboarded(u) },
+] as const;
+type FilterKey = (typeof FILTERS)[number]['key'];
 
 function Avatar({ user, size }: { user: User; size?: 'lg' }) {
   return (
@@ -64,7 +68,7 @@ function EmptyState({ icon, children }: { icon: ReactNode; children: ReactNode }
 }
 
 function EmployeeDetail({ employee }: { employee: User }) {
-  const complete = onboardingSteps(employee).every((s) => s.done);
+  const complete = isOnboarded(employee);
 
   return (
     <div className="ts-directory__detail">
@@ -80,6 +84,16 @@ function EmployeeDetail({ employee }: { employee: User }) {
           <span className={`ts-directory__pill ts-directory__pill--${complete ? 'done' : 'pending'}`}>
             {complete ? 'Onboarded' : 'Onboarding'}
           </span>
+        </div>
+        <div className="ts-directory__hero-actions">
+          <a className="ts-directory__action" href={`mailto:${employee.email}`}>
+            <LuMail aria-hidden /> Email
+          </a>
+          {employee.phone && (
+            <a className="ts-directory__action" href={`tel:${employee.phone}`}>
+              <LuPhone aria-hidden /> Call
+            </a>
+          )}
         </div>
       </section>
 
@@ -139,9 +153,11 @@ function EmployeeDetail({ employee }: { employee: User }) {
 
 /** Employee management: everyone in the org except parents, with the selected one's details beside the list. */
 export default function Employees() {
-  const { org } = useUser();
+  const { org, user: me } = useUser();
   const { users, error } = useOrgUsers(org?.id);
   const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<FilterKey>('all');
+  const listRef = useRef<HTMLDivElement>(null);
   // Selection lives in the URL so a particular employee can be linked to
   const [params, setParams] = useSearchParams();
 
@@ -149,10 +165,24 @@ export default function Employees() {
     .filter((u) => u.role !== 'Parent')
     .sort((a, b) => a.name.localeCompare(b.name));
   const q = query.trim().toLowerCase();
-  const shown = q
-    ? employees.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
-    : employees;
-  const selected = employees.find((u) => u.id === params.get('id')) ?? employees[0];
+  const { test } = FILTERS.find((f) => f.key === filter)!;
+  const shown = employees.filter(
+    (u) => test(u) && (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)),
+  );
+  const selected = employees.find((u) => u.id === params.get('id')) ?? shown[0] ?? employees[0];
+
+  const select = (u: User) => setParams({ id: u.id }, { replace: true });
+
+  // Up/down arrows move through the list, like a listbox
+  function handleListKey(e: KeyboardEvent) {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const i = shown.findIndex((u) => u.id === selected?.id);
+    const next = shown[Math.min(Math.max(i + (e.key === 'ArrowDown' ? 1 : -1), 0), shown.length - 1)];
+    if (!next) return;
+    select(next);
+    listRef.current?.querySelector<HTMLElement>(`[data-id="${next.id}"]`)?.focus();
+  }
 
   return (
     <main className="ts-directory">
@@ -168,18 +198,36 @@ export default function Employees() {
           />
         </label>
 
-        {/* TODO: invite flow */}
-        <Button variation="primary" size="small" className="ts-directory__invite">
-          <LuUserPlus aria-hidden /> Invite employee
-        </Button>
+        <Show permission="users.invite">
+          {/* TODO: invite flow */}
+          <Button variation="primary" size="small">
+            <LuUserPlus aria-hidden /> Invite employee
+          </Button>
+        </Show>
+
+        <div className="ts-directory__filters" role="group" aria-label="Filter employees">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              className="ts-directory__filter"
+              aria-pressed={filter === f.key}
+              onClick={() => setFilter(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
         {error && <Alert variation="error">{error}</Alert>}
         {users === null ? (
           <p className="ts-directory__muted">Loading employees…</p>
         ) : shown.length === 0 ? (
-          <p className="ts-directory__muted">{q ? 'No one matches that search.' : 'No employees yet.'}</p>
+          <p className="ts-directory__muted">
+            {employees.length ? 'No one matches.' : 'No employees yet.'}
+          </p>
         ) : (
-          <div className="ts-directory__items">
+          <div className="ts-directory__items" ref={listRef} onKeyDown={handleListKey}>
             {shown.map((u) => {
               const active = u.id === selected?.id;
               return (
@@ -188,11 +236,15 @@ export default function Employees() {
                   type="button"
                   className={`ts-directory__item${active ? ' ts-directory__item--active' : ''}`}
                   aria-current={active || undefined}
-                  onClick={() => setParams({ id: u.id }, { replace: true })}
+                  data-id={u.id}
+                  onClick={() => select(u)}
                 >
                   <Avatar user={u} />
                   <span className="ts-directory__item-text">
-                    <span className="ts-directory__item-name">{u.name}</span>
+                    <span className="ts-directory__item-name">
+                      {u.name}
+                      {u.id === me?.id && <span className="ts-directory__you">You</span>}
+                    </span>
                     <span className="ts-directory__item-sub">{u.role ?? 'No role'}</span>
                   </span>
                   {active && <LuChevronRight className="ts-directory__item-chevron" aria-hidden />}

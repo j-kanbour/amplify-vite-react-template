@@ -23,7 +23,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     to: '/employees',
     label: 'Employees',
-    permission: 'users.invite',
+    permission: 'users.list',
     icon: <LuUsers />,
   },
   {

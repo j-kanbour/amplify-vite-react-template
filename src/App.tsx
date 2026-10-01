@@ -61,7 +61,7 @@ function AuthedApp() {
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<UserProfile />} />
-              <Route element={<RequirePermission permission="users.invite" />}>
+              <Route element={<RequirePermission permission="users.list" />}>
                 <Route path="/employees" element={<Employees />} />
               </Route>
               <Route element={<RequirePermission permission="org.edit" />}>
