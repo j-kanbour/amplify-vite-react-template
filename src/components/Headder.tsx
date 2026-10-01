@@ -3,7 +3,10 @@ import { LuBell, LuSearch } from 'react-icons/lu';
 import { NAV_ITEMS } from './SideNav';
 
 // Named pages that aren't in the sidebar
-const OTHER_PAGES = [{ to: '/profile', label: 'My profile' }];
+const OTHER_PAGES = [
+  { to: '/profile', label: 'My profile' },
+  { to: '/dashboard', label: 'Dashboard' },
+];
 
 /** Top bar beside the sidebar: page name on the left, universal search, notifications on the right. */
 export default function Header() {

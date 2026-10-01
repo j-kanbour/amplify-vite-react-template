@@ -8,6 +8,7 @@ import { signUpFormFields, signUpComponents, authServices } from './components/S
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
+import Students from './pages/Students';
 import Onboarding from './pages/Onboarding';
 import Privacy from './pages/Privacy';
 import TermsAndConditions from './pages/TermsAndConditions';
@@ -61,6 +62,9 @@ function AuthedApp() {
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<UserProfile />} />
+              <Route element={<RequirePermission permission="students.view" />}>
+                <Route path="/students" element={<Students />} />
+              </Route>
               <Route element={<RequirePermission permission="users.list" />}>
                 <Route path="/employees" element={<Employees />} />
               </Route>

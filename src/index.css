@@ -1291,6 +1291,26 @@ a {
   font-weight: 600;
 }
 
+/* People in a panel, e.g. a student's tutors (resets the global ul/li styles) */
+.ts-directory__people {
+  gap: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.ts-directory__people li,
+.ts-directory__people li:hover {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--ts-hairline);
+  background: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 /* Placeholder panels */
 .ts-directory__empty {
   display: flex;

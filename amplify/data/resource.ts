@@ -72,9 +72,13 @@ const schema = a
         enrollments: a.hasMany('Enrollment', 'studentId'),
         resources: a.hasMany('Resource', 'studentId'),
         lessons: a.hasMany('LessonStudent', 'studentId'),
+        // profileOwner values of the student's assigned tutors (and later its
+        // guardians). Whatever creates or removes a TutorAssignment must keep
+        // this in step: it's what lets a tutor read only their own students.
+        viewers: a.string().array(),
       })
       .authorization((allow) => [
-        allow.authenticated().to(['read']),
+        allow.ownersDefinedIn('viewers').to(['read']),
         allow.group('Admin'),
       ]),
     //Enrollment: records the Orgs that Students belong to

@@ -1,22 +1,13 @@
-import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Alert, Button } from '@aws-amplify/ui-react';
-import {
-  LuCalendar,
-  LuChevronRight,
-  LuGraduationCap,
-  LuListTodo,
-  LuMail,
-  LuPhone,
-  LuReceipt,
-  LuSearch,
-  LuUserPlus,
-} from 'react-icons/lu';
+import { Button } from '@aws-amplify/ui-react';
+import { LuCalendar, LuGraduationCap, LuListTodo, LuMail, LuPhone, LuReceipt, LuUserPlus } from 'react-icons/lu';
 import { useUser } from '../context/UserContext';
 import Show from '../components/Show';
+import DirectoryList from '../components/directory/DirectoryList';
+import { Avatar, EmptyState, Facts, Panel } from '../components/directory/parts';
 import { useOrgUsers } from '../data/useOrgUsers';
 import type { User } from '../data/useUsers';
-import { avatarColor, initials } from '../utils/initials';
 
 const formatDate = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : null;
@@ -32,41 +23,6 @@ const FILTERS = [
 ] as const;
 type FilterKey = (typeof FILTERS)[number]['key'];
 
-function Avatar({ user, size }: { user: User; size?: 'lg' }) {
-  return (
-    <span
-      className={`ts-directory__avatar${size ? ` ts-directory__avatar--${size}` : ''}`}
-      style={{ background: avatarColor(user.id) }}
-      aria-hidden
-    >
-      {initials(user.name)}
-    </span>
-  );
-}
-
-function Panel({ title, badge, children }: { title: string; badge?: ReactNode; children: ReactNode }) {
-  return (
-    <section className="ts-directory__panel">
-      <div className="ts-directory__panel-head">
-        <h3 className="ts-directory__panel-title">{title}</h3>
-        {badge}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function EmptyState({ icon, children }: { icon: ReactNode; children: ReactNode }) {
-  return (
-    <div className="ts-directory__empty">
-      <span className="ts-directory__empty-icon" aria-hidden>
-        {icon}
-      </span>
-      {children}
-    </div>
-  );
-}
-
 function EmployeeDetail({ employee }: { employee: User }) {
   const complete = isOnboarded(employee);
 
@@ -74,7 +30,7 @@ function EmployeeDetail({ employee }: { employee: User }) {
     <div className="ts-directory__detail">
       <section className="ts-directory__panel">
         <div className="ts-directory__hero">
-          <Avatar user={employee} size="lg" />
+          <Avatar id={employee.id} name={employee.name} size="lg" />
           <div className="ts-directory__hero-text">
             <h2 className="ts-directory__hero-name">{employee.name}</h2>
             <p className="ts-directory__hero-sub">
@@ -99,30 +55,15 @@ function EmployeeDetail({ employee }: { employee: User }) {
 
       <div className="ts-directory__grid">
         <Panel title="Bio information">
-          <dl className="ts-directory__facts">
-            <div>
-              <dt>Full name</dt>
-              <dd>{employee.name}</dd>
-            </div>
-            <div>
-              <dt>Email</dt>
-              <dd>
-                <a href={`mailto:${employee.email}`}>{employee.email}</a>
-              </dd>
-            </div>
-            <div>
-              <dt>Phone</dt>
-              <dd>{employee.phone ? <a href={`tel:${employee.phone}`}>{employee.phone}</a> : <span className="ts-directory__muted">Not set</span>}</dd>
-            </div>
-            <div>
-              <dt>Role</dt>
-              <dd>{employee.role ?? '—'}</dd>
-            </div>
-            <div>
-              <dt>Joined</dt>
-              <dd>{formatDate(employee.createdAt) ?? '—'}</dd>
-            </div>
-          </dl>
+          <Facts
+            rows={[
+              ['Full name', employee.name],
+              ['Email', <a href={`mailto:${employee.email}`}>{employee.email}</a>],
+              ['Phone', employee.phone && <a href={`tel:${employee.phone}`}>{employee.phone}</a>],
+              ['Role', employee.role],
+              ['Joined', formatDate(employee.createdAt)],
+            ]}
+          />
         </Panel>
 
         {/* TODO: employee tasks */}
@@ -157,7 +98,6 @@ export default function Employees() {
   const { users, error } = useOrgUsers(org?.id);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
-  const listRef = useRef<HTMLDivElement>(null);
   // Selection lives in the URL so a particular employee can be linked to
   const [params, setParams] = useSearchParams();
 
@@ -171,89 +111,29 @@ export default function Employees() {
   );
   const selected = employees.find((u) => u.id === params.get('id')) ?? shown[0] ?? employees[0];
 
-  const select = (u: User) => setParams({ id: u.id }, { replace: true });
-
-  // Up/down arrows move through the list, like a listbox
-  function handleListKey(e: KeyboardEvent) {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    e.preventDefault();
-    const i = shown.findIndex((u) => u.id === selected?.id);
-    const next = shown[Math.min(Math.max(i + (e.key === 'ArrowDown' ? 1 : -1), 0), shown.length - 1)];
-    if (!next) return;
-    select(next);
-    listRef.current?.querySelector<HTMLElement>(`[data-id="${next.id}"]`)?.focus();
-  }
-
   return (
     <main className="ts-directory">
-      <aside className="ts-directory__list">
-        <label className="ts-directory__search">
-          <LuSearch aria-hidden />
-          <input
-            type="search"
-            placeholder="Find an employee…"
-            aria-label="Find an employee"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-
-        <Show permission="users.invite">
-          {/* TODO: invite flow */}
-          <Button variation="primary" size="small">
-            <LuUserPlus aria-hidden /> Invite employee
-          </Button>
-        </Show>
-
-        <div className="ts-directory__filters" role="group" aria-label="Filter employees">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              className="ts-directory__filter"
-              aria-pressed={filter === f.key}
-              onClick={() => setFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {error && <Alert variation="error">{error}</Alert>}
-        {users === null ? (
-          <p className="ts-directory__muted">Loading employees…</p>
-        ) : shown.length === 0 ? (
-          <p className="ts-directory__muted">
-            {employees.length ? 'No one matches.' : 'No employees yet.'}
-          </p>
-        ) : (
-          <div className="ts-directory__items" ref={listRef} onKeyDown={handleListKey}>
-            {shown.map((u) => {
-              const active = u.id === selected?.id;
-              return (
-                <button
-                  key={u.id}
-                  type="button"
-                  className={`ts-directory__item${active ? ' ts-directory__item--active' : ''}`}
-                  aria-current={active || undefined}
-                  data-id={u.id}
-                  onClick={() => select(u)}
-                >
-                  <Avatar user={u} />
-                  <span className="ts-directory__item-text">
-                    <span className="ts-directory__item-name">
-                      {u.name}
-                      {u.id === me?.id && <span className="ts-directory__you">You</span>}
-                    </span>
-                    <span className="ts-directory__item-sub">{u.role ?? 'No role'}</span>
-                  </span>
-                  {active && <LuChevronRight className="ts-directory__item-chevron" aria-hidden />}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </aside>
+      <DirectoryList
+        noun="employee"
+        items={users && shown.map((u) => ({ id: u.id, name: u.name, sub: u.role ?? 'No role', tag: u.id === me?.id ? 'You' : undefined }))}
+        hasAny={employees.length > 0}
+        selectedId={selected?.id}
+        onSelect={(id) => setParams({ id }, { replace: true })}
+        query={query}
+        onQueryChange={setQuery}
+        filters={FILTERS}
+        filter={filter}
+        onFilterChange={(key) => setFilter(key as FilterKey)}
+        error={error}
+        actions={
+          <Show permission="users.invite">
+            {/* TODO: invite flow */}
+            <Button variation="primary" size="small">
+              <LuUserPlus aria-hidden /> Invite employee
+            </Button>
+          </Show>
+        }
+      />
 
       {selected ? (
         <EmployeeDetail employee={selected} />

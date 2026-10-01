@@ -16,8 +16,9 @@ export const NAV_ITEMS: NavItem[] = [
     icon: <LuHouse />,
   },
   {
-    to: '/dashboard',
+    to: '/students',
     label: 'Students',
+    permission: 'students.view',
     icon: <LuGraduationCap />,
   },
   {
