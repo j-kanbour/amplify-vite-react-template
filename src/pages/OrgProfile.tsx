@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Alert } from '@aws-amplify/ui-react';
 import { client } from '../data/client';
+import { useOrgUsers } from '../data/useOrgUsers';
 import { useUser } from '../context/UserContext';
 import { PLAN_LABELS } from '../components/SideNav';
 import AvatarUpload from '../components/profile/AvatarUpload';
@@ -24,27 +24,11 @@ const formatDate = (iso?: string | null) =>
 
 /** How many of the org's users hold each role. */
 function useTeamCounts(orgId?: string) {
-  const [counts, setCounts] = useState<Record<string, number> | null>(null);
-
-  useEffect(() => {
-    if (!orgId) return;
-    let cancelled = false;
-    (async () => {
-      const tally: Record<string, number> = {};
-      let nextToken: string | null | undefined;
-      do {
-        const page = await client.models.User.list({ filter: { orgId: { eq: orgId } }, nextToken });
-        for (const u of page.data) tally[u.role ?? 'Other'] = (tally[u.role ?? 'Other'] ?? 0) + 1;
-        nextToken = page.nextToken;
-      } while (nextToken);
-      if (!cancelled) setCounts(tally);
-    })().catch(() => !cancelled && setCounts({}));
-    return () => {
-      cancelled = true;
-    };
-  }, [orgId]);
-
-  return counts;
+  const { users } = useOrgUsers(orgId);
+  if (!users) return null;
+  const tally: Record<string, number> = {};
+  for (const u of users) tally[u.role ?? 'Other'] = (tally[u.role ?? 'Other'] ?? 0) + 1;
+  return tally;
 }
 
 /** The organisation's profile. Admin only: guarded by the org.edit route in App.tsx. */
@@ -108,7 +92,7 @@ export default function OrgProfile() {
               {total === null ? 'Counting members…' : `${total} member${total === 1 ? '' : 's'}`}
             </p>
           </div>
-          <Link className="ts-profile__link" to="/invites">
+          <Link className="ts-profile__link" to="/employees">
             Manage employees
           </Link>
         </div>

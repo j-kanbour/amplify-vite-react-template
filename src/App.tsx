@@ -7,7 +7,7 @@ import SideNav from './components/SideNav';
 import { signUpFormFields, signUpComponents, authServices } from './components/SignUpForm';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
-import Invites from './pages/Invites';
+import Employees from './pages/Employees';
 import Onboarding from './pages/Onboarding';
 import Privacy from './pages/Privacy';
 import TermsAndConditions from './pages/TermsAndConditions';
@@ -62,7 +62,7 @@ function AuthedApp() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route element={<RequirePermission permission="users.invite" />}>
-                <Route path="/invites" element={<Invites />} />
+                <Route path="/employees" element={<Employees />} />
               </Route>
               <Route element={<RequirePermission permission="org.edit" />}>
                 <Route path="/organisation" element={<OrgProfile />} />

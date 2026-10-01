@@ -21,7 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: <LuGraduationCap />,
   },
   {
-    to: '/invites',
+    to: '/employees',
     label: 'Employees',
     permission: 'users.invite',
     icon: <LuUsers />,

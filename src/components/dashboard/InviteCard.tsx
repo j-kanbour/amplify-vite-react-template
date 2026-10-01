@@ -9,7 +9,7 @@ export default function InviteCard() {
     <section>
       <h2>Invite people</h2>
       <p>Parents and tutors join by invitation only.</p>
-      <Link to="/invites">Manage invites</Link>
+      <Link to="/employees">Manage employees</Link>
     </section>
   );
 }
