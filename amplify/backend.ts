@@ -4,6 +4,9 @@ import { auth } from './auth/resource';
 import { preSignUp } from './auth/pre-signup/resource';
 import { data } from './data/resource';
 import { myFunction } from './backend/myFunction/resource';
+import { storageProfileData, storageOrgResources } from './storage/resource';
+import { profileAccess } from './functions/fileAccess/profiles/resource';
+import { resourceAccess } from './functions/fileAccess/resources/resource';
 
 /**
  * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
@@ -13,6 +16,10 @@ const backend = defineBackend({
   data,
   myFunction,
   preSignUp,
+  storageProfileData,
+  storageOrgResources,
+  profileAccess,
+  resourceAccess,
 });
 
 // The pre-signup trigger links Google sign-ins to email accounts, which
