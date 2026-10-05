@@ -60,7 +60,7 @@ export default function OrgProfile() {
   return (
     <main className="ts-profile">
       <section className="ts-profile__card">
-        <AvatarUpload name={org.name} shape="square" buttonLabel="Upload logo">
+        <AvatarUpload path={`orgs/${org.id}/logo`} name={org.name} shape="square" buttonLabel="Upload logo">
           <h2 className="ts-profile__name">{org.name}</h2>
           <p className="ts-profile__meta">
             <span className="ts-profile__pill">{PLAN_LABELS[org.subscription ?? 'free'] ?? org.subscription}</span>
