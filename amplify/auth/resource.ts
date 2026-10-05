@@ -1,5 +1,6 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
 import { postConfirmation } from './post-confirmation/resource';
+import { completeOnboarding } from '../data/complete-onboarding/resource';
 
 /**
  * OAuth redirect targets, set as environment variables on the Amplify app
@@ -49,5 +50,8 @@ export const auth = defineAuth({
   },
   groups: ['Admin', 'Tutor', 'Parent'],
   triggers: { postConfirmation },
-  access: (allow) => [allow.resource(postConfirmation).to(['addUserToGroup'])],
+  access: (allow) => [
+    allow.resource(postConfirmation).to(['addUserToGroup']),
+    allow.resource(completeOnboarding).to(['getUser', 'updateUserAttributes', 'addUserToGroup']),
+  ],
 });
