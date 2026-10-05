@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useUser } from '../context/UserContext';
 import type { Permission } from '../access';
+import { useProfilePhoto } from '../data/useProfilePhoto';
 import { initials } from '../utils/initials';
 import { LuHouse, LuGraduationCap, LuUsers, LuBuilding2, LuUser, LuSettings, LuLogOut, LuChevronsUpDown } from 'react-icons/lu';
 
@@ -44,6 +45,8 @@ export default function SideNav() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const logo = useProfilePhoto(org ? `orgs/${org.id}/logo` : undefined);
+  const avatar = useProfilePhoto(user ? `users/${user.id}/avatar` : undefined);
 
   // Close the account menu on an outside click or Escape.
   useEffect(() => {
@@ -64,7 +67,9 @@ export default function SideNav() {
     <nav className="ts-sidenav" aria-label="Main">
       {/* TODO: organisation switcher */}
       <div className="ts-sidenav__org">
-        <span className="ts-sidenav__org-logo">{initials(org?.name)}</span>
+        <span className="ts-sidenav__org-logo">
+          {logo.src ? <img className="ts-sidenav__img" src={logo.src} alt="" onError={logo.onError} /> : initials(org?.name)}
+        </span>
         <span className="ts-sidenav__org-text">
           <span className="ts-sidenav__org-name">{org?.name ?? ''}</span>
           <span className="ts-sidenav__org-sub">{PLAN_LABELS[subscription] ?? subscription}</span>
@@ -123,7 +128,9 @@ export default function SideNav() {
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((o) => !o)}
         >
-          <span className="ts-sidenav__avatar">{initials(user?.name)}</span>
+          <span className="ts-sidenav__avatar">
+            {avatar.src ? <img className="ts-sidenav__img" src={avatar.src} alt="" onError={avatar.onError} /> : initials(user?.name)}
+          </span>
           <span className="ts-sidenav__user-text">
             <span className="ts-sidenav__user-name">{user?.name}</span>
             <span className="ts-sidenav__user-role">{user?.role ?? groups[0] ?? ''}</span>

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { Button } from '@aws-amplify/ui-react';
 import { LuCamera } from 'react-icons/lu';
-import { presign } from '../../data/profileFile';
+import { photoChanged, presign } from '../../data/profileFile';
+import { useProfilePhoto } from '../../data/useProfilePhoto';
 import { initials } from '../../utils/initials';
 
 type Props = {
@@ -19,14 +20,9 @@ type Props = {
 /** Profile picture beside the heading, with an upload button. Falls back to initials. */
 export default function AvatarUpload({ path, name, shape = 'round', buttonLabel, children }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [src, setSrc] = useState<string>();
+  const { src, onError } = useProfilePhoto(path);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string>();
-
-  useEffect(() => {
-    setSrc(undefined);
-    presign(path, 'get').then(setSrc, () => {});
-  }, [path]);
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -42,7 +38,7 @@ export default function AvatarUpload({ path, name, shape = 'round', buttonLabel,
         headers: { 'Content-Type': file.type },
       });
       if (!res.ok) throw new Error(`Upload failed (${res.status})`);
-      setSrc(await presign(path, 'get'));
+      photoChanged(path);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
@@ -54,8 +50,7 @@ export default function AvatarUpload({ path, name, shape = 'round', buttonLabel,
     <div className="ts-profile__identity">
       <span className={`ts-profile__avatar ts-profile__avatar--${shape}`} aria-hidden>
         {src ? (
-          // a 403/404 here just means nothing's been uploaded yet
-          <img className="ts-profile__avatar-img" src={src} alt="" onError={() => setSrc(undefined)} />
+          <img className="ts-profile__avatar-img" src={src} alt="" onError={onError} />
         ) : (
           initials(name)
         )}

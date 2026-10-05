@@ -20,3 +20,19 @@ export function presignedGet(path: string) {
   cache.set(path, { at: Date.now(), url });
   return url;
 }
+
+const listeners = new Set<(path: string) => void>();
+
+/** Subscribes to photoChanged; returns the unsubscribe. */
+export function onPhotoChanged(listener: (path: string) => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/** Call after uploading to path, so everything showing it fetches the new one. */
+export function photoChanged(path: string) {
+  cache.delete(path);
+  listeners.forEach((l) => l(path));
+}

@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { presignedGet } from '../../data/profileFile';
+import type { ReactNode } from 'react';
+import { useProfilePhoto } from '../../data/useProfilePhoto';
 import { avatarColor, initials } from '../../utils/initials';
 
 /**
@@ -7,19 +7,7 @@ import { avatarColor, initials } from '../../utils/initials';
  * if photo (a key in the profile bucket) has one.
  */
 export function Avatar({ id, name, size, photo }: { id: string; name: string; size?: 'lg'; photo?: string }) {
-  // Keyed by path so a stale picture never shows while the next one loads
-  const [loaded, setLoaded] = useState<{ photo: string; url?: string }>();
-  const src = photo && loaded?.photo === photo ? loaded.url : undefined;
-  const setSrc = (url?: string) => photo && setLoaded({ photo, url });
-
-  useEffect(() => {
-    if (!photo) return;
-    let current = true;
-    presignedGet(photo).then((url) => current && setLoaded({ photo, url }), () => {});
-    return () => {
-      current = false;
-    };
-  }, [photo]);
+  const { src, onError } = useProfilePhoto(photo);
 
   return (
     <span
@@ -28,8 +16,7 @@ export function Avatar({ id, name, size, photo }: { id: string; name: string; si
       aria-hidden
     >
       {src ? (
-        // a 403/404 here just means nothing's been uploaded yet
-        <img className="ts-directory__avatar-img" src={src} alt="" onError={() => setSrc(undefined)} />
+        <img className="ts-directory__avatar-img" src={src} alt="" onError={onError} />
       ) : (
         initials(name)
       )}

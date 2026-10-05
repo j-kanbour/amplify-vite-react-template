@@ -758,6 +758,15 @@ a {
   font-weight: 700;
   font-size: 0.85rem;
 }
+.ts-sidenav__org-logo,
+.ts-sidenav__avatar {
+  overflow: hidden;
+}
+.ts-sidenav__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .ts-sidenav__menu {
   position: absolute;
   bottom: calc(100% + 8px);
