@@ -3,7 +3,14 @@ import { Alert } from '@aws-amplify/ui-react';
 import { LuChevronRight, LuSearch } from 'react-icons/lu';
 import { Avatar } from './parts';
 
-export type DirectoryItem = { id: string; name: string; sub?: ReactNode; tag?: string };
+export type DirectoryItem = {
+  id: string;
+  name: string;
+  sub?: ReactNode;
+  tag?: string;
+  /** Profile bucket key of their picture, shown instead of initials when set. */
+  photo?: string;
+};
 
 type Props = {
   /** "employee", "student": used in the search placeholder and messages. */
@@ -101,7 +108,7 @@ export default function DirectoryList({
                 data-id={item.id}
                 onClick={() => onSelect(item.id)}
               >
-                <Avatar id={item.id} name={item.name} />
+                <Avatar id={item.id} name={item.name} photo={item.photo} />
                 <span className="ts-directory__item-text">
                   <span className="ts-directory__item-name">
                     {item.name}

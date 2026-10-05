@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { Button } from '@aws-amplify/ui-react';
 import { LuCamera } from 'react-icons/lu';
-import { client } from '../../data/client';
+import { presign } from '../../data/profileFile';
 import { initials } from '../../utils/initials';
 
 type Props = {
@@ -15,13 +15,6 @@ type Props = {
   /** Title, subtitle, badges: whatever sits beside the picture. */
   children?: ReactNode;
 };
-
-/** Asks profileAccess for a presigned URL to get or put the file at path. */
-async function presign(path: string, action: 'get' | 'put') {
-  const { data, errors } = await client.mutations.profileFile({ path, action });
-  if (errors || !data?.url) throw new Error(errors?.[0]?.message ?? 'No URL returned');
-  return data.url;
-}
 
 /** Profile picture beside the heading, with an upload button. Falls back to initials. */
 export default function AvatarUpload({ path, name, shape = 'round', buttonLabel, children }: Props) {

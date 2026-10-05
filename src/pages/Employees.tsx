@@ -23,6 +23,9 @@ const FILTERS = [
 ] as const;
 type FilterKey = (typeof FILTERS)[number]['key'];
 
+/** Where UserProfile's "Upload photo" puts their picture. */
+const photoPath = (u: User) => `users/${u.id}/avatar`;
+
 function EmployeeDetail({ employee }: { employee: User }) {
   const complete = isOnboarded(employee);
 
@@ -30,7 +33,7 @@ function EmployeeDetail({ employee }: { employee: User }) {
     <div className="ts-directory__detail">
       <section className="ts-directory__panel">
         <div className="ts-directory__hero">
-          <Avatar id={employee.id} name={employee.name} size="lg" />
+          <Avatar id={employee.id} name={employee.name} size="lg" photo={photoPath(employee)} />
           <div className="ts-directory__hero-text">
             <h2 className="ts-directory__hero-name">{employee.name}</h2>
             <p className="ts-directory__hero-sub">
@@ -115,7 +118,16 @@ export default function Employees() {
     <main className="ts-directory">
       <DirectoryList
         noun="employee"
-        items={users && shown.map((u) => ({ id: u.id, name: u.name, sub: u.role ?? 'No role', tag: u.id === me?.id ? 'You' : undefined }))}
+        items={
+          users &&
+          shown.map((u) => ({
+            id: u.id,
+            name: u.name,
+            sub: u.role ?? 'No role',
+            tag: u.id === me?.id ? 'You' : undefined,
+            photo: photoPath(u),
+          }))
+        }
         hasAny={employees.length > 0}
         selectedId={selected?.id}
         onSelect={(id) => setParams({ id }, { replace: true })}
