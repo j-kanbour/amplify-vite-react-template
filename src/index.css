@@ -863,6 +863,14 @@ a {
   font-weight: 700;
   font-size: 1.8rem;
 }
+.ts-profile__avatar {
+  overflow: hidden;
+}
+.ts-profile__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .ts-profile__avatar--round {
   border-radius: var(--ts-radius-pill);
   background: var(--ts-teal);

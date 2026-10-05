@@ -62,7 +62,7 @@ export default function UserProfile() {
   return (
     <main className="ts-profile">
       <section className="ts-profile__card">
-        <AvatarUpload name={user.name} buttonLabel="Upload photo">
+        <AvatarUpload path={`users/${user.id}/avatar`} name={user.name} buttonLabel="Upload photo">
           <h2 className="ts-profile__name">{user.name}</h2>
           <p className="ts-profile__meta">
             {user.email}

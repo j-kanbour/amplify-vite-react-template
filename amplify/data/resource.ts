@@ -1,6 +1,8 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { postConfirmation } from '../auth/post-confirmation/resource';
 import { completeOnboarding } from './complete-onboarding/resource';
+import { profileAccess } from '../functions/fileAccess/profiles/resource';
+import { resourceAccess } from '../functions/fileAccess/resources/resource';
 import { ORG_SIZES } from './org-sizes';
 
 const schema = a
@@ -227,10 +229,31 @@ const schema = a
       .returns(a.ref('OnboardingResult'))
       .handler(a.handler.function(completeOnboarding))
       .authorization((allow) => [allow.authenticated()]),
+    //File access: S3 files are only reachable through these, which check
+    // permissions and return a presigned URL (get/put) or the keys (list)
+    FileAction: a.enum(['get', 'put', 'delete', 'list']),
+    FileAccessResult: a.customType({
+      url: a.string(),
+      keys: a.string().array(),
+    }),
+    profileFile: a
+      .mutation()
+      .arguments({ path: a.string().required(), action: a.ref('FileAction').required() })
+      .returns(a.ref('FileAccessResult'))
+      .handler(a.handler.function(profileAccess))
+      .authorization((allow) => [allow.authenticated()]),
+    orgResourceFile: a
+      .mutation()
+      .arguments({ path: a.string().required(), action: a.ref('FileAction').required() })
+      .returns(a.ref('FileAccessResult'))
+      .handler(a.handler.function(resourceAccess))
+      .authorization((allow) => [allow.authenticated()]),
   })
   .authorization((allow) => [
     allow.resource(postConfirmation),
     allow.resource(completeOnboarding),
+    allow.resource(profileAccess).to(['query']),
+    allow.resource(resourceAccess).to(['query']),
   ]);
 
 export type Schema = ClientSchema<typeof schema>;
