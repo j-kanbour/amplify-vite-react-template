@@ -5,6 +5,7 @@ import { LuCalendar, LuGraduationCap, LuListTodo, LuMail, LuPhone, LuReceipt, Lu
 import { useUser } from '../context/UserContext';
 import Show from '../components/Show';
 import DirectoryList from '../components/directory/DirectoryList';
+import InviteEmployeeDialog from '../components/directory/InviteEmployeeDialog';
 import { Avatar, EmptyState, Facts, Panel } from '../components/directory/parts';
 import { useOrgUsers } from '../data/useOrgUsers';
 import type { User } from '../data/useUsers';
@@ -101,6 +102,7 @@ export default function Employees() {
   const { users, error } = useOrgUsers(org?.id);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
+  const [inviting, setInviting] = useState(false);
   // Selection lives in the URL so a particular employee can be linked to
   const [params, setParams] = useSearchParams();
 
@@ -139,8 +141,7 @@ export default function Employees() {
         error={error}
         actions={
           <Show permission="users.invite">
-            {/* TODO: invite flow */}
-            <Button variation="primary" size="small">
+            <Button variation="primary" size="small" onClick={() => setInviting(true)}>
               <LuUserPlus aria-hidden /> Invite employee
             </Button>
           </Show>
@@ -156,6 +157,8 @@ export default function Employees() {
           </section>
         )
       )}
+
+      <InviteEmployeeDialog open={inviting} onClose={() => setInviting(false)} />
     </main>
   );
 }

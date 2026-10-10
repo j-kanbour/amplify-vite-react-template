@@ -6,13 +6,22 @@ import { completeOnboarding } from '../data/complete-onboarding/resource';
  * OAuth redirect targets, set as environment variables on the Amplify app
  * (App settings -> Environment variables). Each holds a comma-separated list
  * so a branch can register more than one URL.
+ *
+ * Those variables only exist in Amplify Hosting builds (which set AWS_BRANCH).
+ * A local `ampx sandbox` falls back to the Vite dev server unless the
+ * variable is exported in the shell.
  */
+const LOCAL_DEV_URL = 'http://localhost:5173/';
+
 function urlsFromEnv(name: string): string[] {
   const urls = (process.env[name] ?? '')
     .split(',')
     .map((url) => url.trim())
     .filter(Boolean);
 
+  if (urls.length === 0 && !process.env.AWS_BRANCH) {
+    return [LOCAL_DEV_URL];
+  }
   if (urls.length === 0) {
     throw new Error(
       `${name} is not set. Add it to the Amplify app's environment variables ` +

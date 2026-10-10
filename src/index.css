@@ -1402,3 +1402,79 @@ a {
     display: none;
   }
 }
+
+/* ---------- Dialog ---------- */
+.ts-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-lg);
+  background: var(--ts-card);
+  color: var(--ts-ink);
+  box-shadow: var(--ts-shadow-lg);
+}
+.ts-dialog::backdrop {
+  background: rgba(43, 37, 33, 0.4);
+}
+.ts-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+.ts-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ts-dialog__title {
+  margin: 0;
+  font-family: var(--ts-font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+.ts-dialog__sub {
+  margin: 4px 0 0;
+  color: var(--ts-ink-2);
+  font-size: 0.9rem;
+}
+.ts-dialog__close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--ts-radius-pill);
+  background: none;
+  color: var(--ts-ink-2);
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+.ts-dialog__close:hover {
+  background: var(--ts-sunken);
+  color: var(--ts-ink);
+}
+.ts-dialog__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.ts-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .ts-dialog__body {
+    padding: 20px 16px;
+  }
+  .ts-dialog__row {
+    grid-template-columns: 1fr;
+  }
+}
