@@ -1,5 +1,5 @@
 import { defineStorage } from '@aws-amplify/backend';
-import { profileAccess } from '../functions/fileAccess/profiles/resource';
+import { profileAccess } from '../functions/employees/invite/resource';
 import { resourceAccess } from '../functions/fileAccess/resources/resource';
 
 // Clients never touch these buckets directly: they call the profileFile and

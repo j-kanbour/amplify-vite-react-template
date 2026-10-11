@@ -1,6 +1,6 @@
 import { env } from '$amplify/env/profile-access';
 import { type Schema } from '../../../data/resource';
-import { getDb, getCaller, parsePath, runAction, isRead } from '../shared';
+import { getDb, getCaller, parsePath, runAction, isRead } from '../../fileAccess/shared';
 
 /**
  * Gatekeeper for the TS_ProfileData bucket, which clients can't reach

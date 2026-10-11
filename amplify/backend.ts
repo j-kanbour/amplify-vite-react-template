@@ -5,7 +5,7 @@ import { preSignUp } from './auth/pre-signup/resource';
 import { data } from './data/resource';
 import { myFunction } from './backend/myFunction/resource';
 import { storageProfileData, storageOrgResources } from './storage/resource';
-import { profileAccess } from './functions/fileAccess/profiles/resource';
+import { profileAccess } from './functions/employees/invite/resource';
 import { resourceAccess } from './functions/fileAccess/resources/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
 import { completeOnboarding } from './data/complete-onboarding/resource';

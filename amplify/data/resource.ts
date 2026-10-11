@@ -1,7 +1,7 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { postConfirmation } from '../auth/post-confirmation/resource';
 import { completeOnboarding } from './complete-onboarding/resource';
-import { profileAccess } from '../functions/fileAccess/profiles/resource';
+import { profileAccess } from '../functions/employees/invite/resource';
 import { resourceAccess } from '../functions/fileAccess/resources/resource';
 import { ORG_SIZES } from './org-sizes';
 
