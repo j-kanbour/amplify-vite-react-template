@@ -1,39 +1,38 @@
-import { env } from '$amplify/env/profile-access';
-import { type Schema } from '../../../data/resource';
-import { getDb, getCaller, parsePath, runAction, isRead } from '../../fileAccess/shared';
+import type { Handler } from 'aws-lambda';
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
-/**
- * Gatekeeper for the TS_ProfileData bucket, which clients can't reach
- * directly:
- *   users/{userId}/...  the user themselves, or an admin of an org they're in
- *   orgs/{orgId}/...    members read, org admins write and delete
- */
-export const handler: Schema['profileFile']['functionHandler'] = async (event) => {
-  const { path, action } = event.arguments;
-  const [root, id, ...rest] = parsePath(path, action);
-  // Whole-folder deletes or reads above an id aren't supported
-  if (!id || (action !== 'list' && rest.length === 0)) throw new Error('Invalid path');
+const sesClient = new SESClient({ region: "ap-southeast-2" });
 
-  const db = await getDb(env);
-  const caller = await getCaller(db, event.identity);
+type SendEmailEvent = {
+  email: string;
+  name: string;
+  orgName: string;
+  message: string;
+};
 
-  let allowed = false;
-  if (root === 'users') {
-    if (id === caller.userId) {
-      allowed = true;
-    } else {
-      const { data: target } = await db.models.User.get(
-        { id },
-        { selectionSet: ['orgId', 'memberships.orgId'] }
-      );
-      const targetOrgs = [target?.orgId, ...(target?.memberships ?? []).map((m) => m.orgId)];
-      allowed = targetOrgs.some((orgId) => orgId && caller.orgRoles.get(orgId) === 'admin');
+export const handler: Handler<SendEmailEvent, void> = async (event) => {
+  const { email, orgName, name, message } = event;
+  
+  const recipiant = email;
+  const subject = `${orgName} has invited you to join Tutor Studio`;
+  const body = message;
+
+  const command = new SendEmailCommand({
+    Source: "",
+    Destination: {
+      ToAddress: [recipiant],
+    },
+    Message: {
+      Body: {
+        Text: { Data: body },
+      },
+      Subject: { Data: subject }
     }
-  } else if (root === 'orgs') {
-    const role = caller.orgRoles.get(id);
-    allowed = role === 'admin' || (!!role && isRead(action));
-  }
+  });
 
-  if (!allowed) throw new Error('Forbidden');
-  return runAction(env.TS_PROFILE_DATA_BUCKET_NAME, path, action);
+  try {
+    const result = await sesClient.send(command); 
+  } catch (error) {
+    console.error(`Error sending invite to ${recipiant}: ${error}`)
+  }
 };
