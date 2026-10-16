@@ -11,6 +11,7 @@ import { sendEmployeeInviteEmail } from './functions/employees/invite/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
 import { completeOnboarding } from './data/complete-onboarding/resource';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
+import { Stack } from 'aws-cdk-lib';
 
 /**
  * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
@@ -61,3 +62,14 @@ new Policy(userPool.stack, 'PreSignUpLinkProviderPolicy', {
     }),
   ],
 }).attachToRole(backend.preSignUp.resources.lambda.role!);
+
+// SES checks SendEmail against the sender's verified identity (and, while the
+// account is in the SES sandbox, the recipient's), so allow any identity here.
+const inviteLambda = backend.sendEmployeeInviteEmail.resources.lambda;
+const { region, account } = Stack.of(inviteLambda);
+inviteLambda.addToRolePolicy(
+  new PolicyStatement({
+    actions: ['ses:SendEmail'],
+    resources: [`arn:aws:ses:${region}:${account}:identity/*`],
+  })
+);
