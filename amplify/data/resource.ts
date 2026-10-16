@@ -2,6 +2,7 @@ import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { postConfirmation } from '../auth/post-confirmation/resource';
 import { completeOnboarding } from './complete-onboarding/resource';
 import { sendEmployeeInviteEmail } from '../functions/employees/invite/resource';
+import { profileAccess } from '../functions/fileAccess/profiles/resource';
 import { resourceAccess } from '../functions/fileAccess/resources/resource';
 import { ORG_SIZES } from './org-sizes';
 
@@ -240,7 +241,7 @@ const schema = a
       .mutation()
       .arguments({ path: a.string().required(), action: a.ref('FileAction').required() })
       .returns(a.ref('FileAccessResult'))
-      .handler(a.handler.function(resourceAccess))
+      .handler(a.handler.function(profileAccess))
       .authorization((allow) => [allow.authenticated()]),
     orgResourceFile: a
       .mutation()
@@ -264,6 +265,7 @@ const schema = a
     allow.resource(postConfirmation),
     allow.resource(completeOnboarding),
     allow.resource(sendEmployeeInviteEmail).to(['query']),
+    allow.resource(profileAccess).to(['query']),
     allow.resource(resourceAccess).to(['query']),
   ]);
 

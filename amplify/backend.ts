@@ -5,6 +5,7 @@ import { preSignUp } from './auth/pre-signup/resource';
 import { data } from './data/resource';
 import { myFunction } from './backend/myFunction/resource';
 import { storageProfileData, storageOrgResources } from './storage/resource';
+import { profileAccess } from './functions/fileAccess/profiles/resource';
 import { resourceAccess } from './functions/fileAccess/resources/resource';
 import { sendEmployeeInviteEmail } from './functions/employees/invite/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
@@ -21,6 +22,7 @@ const backend = defineBackend({
   preSignUp,
   storageProfileData,
   storageOrgResources,
+  profileAccess,
   resourceAccess,
   postConfirmation,
   completeOnboarding,
@@ -36,6 +38,7 @@ const functions = {
   'pre-signup': backend.preSignUp,
   'post-confirmation': backend.postConfirmation,
   'complete-onboarding': backend.completeOnboarding,
+  'profile-access': backend.profileAccess,
   'resource-access': backend.resourceAccess,
   'send-employee-invite-email': backend.sendEmployeeInviteEmail,
 };
