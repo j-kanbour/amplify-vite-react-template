@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Button, SelectField, TextAreaField, TextField } from '@aws-amplify/ui-react';
+import { Alert, Button, SelectField, TextAreaField, TextField } from '@aws-amplify/ui-react';
 import { LuX } from 'react-icons/lu';
 import { validateEmail, validatePhone } from '../../utils/validation';
+import { client } from '../../data/client';
+import { useUser } from '../../context/UserContext';
 
 const ROLES = ['Admin', 'Tutor'] as const;
 
@@ -13,11 +15,14 @@ type Props = {
   onClose: () => void;
 };
 
-/** Collects the details for an employee invite. Doesn't send anything yet. */
+/** Collects the details for an employee invite and emails it. */
 export default function InviteEmployeeDialog({ open, onClose }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const [values, setValues] = useState<Values>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof Values, string>>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const { org } = useUser();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -34,6 +39,7 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
   function handleClose() {
     setValues(EMPTY);
     setErrors({});
+    setSendError(null);
     onClose();
   }
 
@@ -45,7 +51,7 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
     onChange: (e: { target: { value: string } }) => setValues((v) => ({ ...v, [name]: e.target.value })),
   });
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const v = Object.fromEntries(Object.entries(values).map(([k, x]) => [k, x.trim()])) as Values;
 
@@ -59,8 +65,22 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
     setErrors(found);
     if (Object.keys(found).length) return;
 
-    // TODO: send the invite
-    onClose();
+    setSendError(null);
+    setSubmitting(true);
+    try {
+      const { errors: sendErrors } = await client.mutations.sendEmployeeInviteEmail({
+        to: v.email,
+        subject: `You've been invited to join ${org?.name ?? 'Tutor Studio'}`,
+        text: v.message || undefined,
+        orgName: org?.name ?? '',
+      });
+      if (sendErrors?.length) throw new Error(sendErrors[0].message);
+      onClose();
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : 'Could not send the invite. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -103,9 +123,13 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
           {...field('message')}
         />
 
+        {sendError && <Alert variation="error">{sendError}</Alert>}
+
         <div className="ts-dialog__actions">
           <Button onClick={onClose}>Cancel</Button>
-          <Button variation="primary" type="submit">Send invite</Button>
+          <Button variation="primary" type="submit" isLoading={submitting} loadingText="Sending…">
+            Send invite
+          </Button>
         </div>
       </form>
     </dialog>
