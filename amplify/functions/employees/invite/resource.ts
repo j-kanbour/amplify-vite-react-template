@@ -1,5 +1,5 @@
 import { defineFunction } from '@aws-amplify/backend';
 
-export const profileAccess = defineFunction({
-  name: 'profile-access',
+export const sendEmployeeInviteEmail = defineFunction({
+  name: 'send-employee-invite-email',
 });

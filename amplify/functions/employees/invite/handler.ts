@@ -1,38 +1,56 @@
-import type { Handler } from 'aws-lambda';
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+// src/handler.ts
+import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import type { Schema } from "../../../data/resource";
 
-const sesClient = new SESClient({ region: "ap-southeast-2" });
+const ses = new SESv2Client({}); 
+const FROM = "jkanbour1@gmail.com"; 
 
-type SendEmailEvent = {
-  email: string;
-  name: string;
-  orgName: string;
-  message: string;
-};
+export const handler: Schema["sendEmployeeInviteEmail"]["functionHandler"] = async (event) => {
+  const { to, subject, text, orgName } = JSON.parse(event.body ?? "{}");
 
-export const handler: Handler<SendEmailEvent, void> = async (event) => {
-  const { email, orgName, name, message } = event;
-  
-  const recipiant = email;
-  const subject = `${orgName} has invited you to join Tutor Studio`;
-  const body = message;
+  if (!to || !subject || !(text)) {
+    return { statusCode: 400, body: JSON.stringify({ error: "to, subject and text/html required" }) };
+  }
 
-  const command = new SendEmailCommand({
-    Source: "",
-    Destination: {
-      ToAddress: [recipiant],
-    },
-    Message: {
-      Body: {
-        Text: { Data: body },
-      },
-      Subject: { Data: subject }
-    }
-  });
+  const inviteLink = generateInviteLink(orgName, to);
+  const html = buildHtmlEmail(orgName, inviteLink);
 
   try {
-    const result = await sesClient.send(command); 
-  } catch (error) {
-    console.error(`Error sending invite to ${recipiant}: ${error}`)
+    const res = await ses.send(
+      new SendEmailCommand({
+        FromEmailAddress: FROM,
+        Destination: { ToAddresses: Array.isArray(to) ? to : [to] },
+        Content: {
+          Simple: {
+            Subject: { Data: subject, Charset: "UTF-8" },
+            Body: {
+              ...(text && { Text: { Data: text, Charset: "UTF-8" } }),
+              ...(html && { Html: { Data: html, Charset: "UTF-8" } }),
+            },
+          },
+        },
+      })
+    );
+    return { statusCode: 200, body: JSON.stringify({ messageId: res.MessageId }) };
+  } catch (err) {
+    console.error(err);
+    return { statusCode: 500, body: JSON.stringify({ error: "Failed to send email" }) };
   }
 };
+
+const buildHtmlEmail = (name: string, inviteLink: string) => {
+  return `
+    <html>
+      <body>
+        <p>Hi ${name},</p>
+        <p>You have been invited to join ${inviteLink}. Please click the link below to accept the invitation:</p>
+        <a href="${inviteLink}">Accept Invitation</a>
+        <p>Best regards,<br/>The Team</p>
+      </body>
+    </html>
+  `;
+}
+
+const generateInviteLink = (orgId: string, email: string) => {
+
+}

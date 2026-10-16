@@ -5,8 +5,8 @@ import { preSignUp } from './auth/pre-signup/resource';
 import { data } from './data/resource';
 import { myFunction } from './backend/myFunction/resource';
 import { storageProfileData, storageOrgResources } from './storage/resource';
-import { profileAccess } from './functions/employees/invite/resource';
 import { resourceAccess } from './functions/fileAccess/resources/resource';
+import { sendEmployeeInviteEmail } from './functions/employees/invite/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
 import { completeOnboarding } from './data/complete-onboarding/resource';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
@@ -21,10 +21,10 @@ const backend = defineBackend({
   preSignUp,
   storageProfileData,
   storageOrgResources,
-  profileAccess,
   resourceAccess,
   postConfirmation,
   completeOnboarding,
+  sendEmployeeInviteEmail
 });
 
 // Give the Lambdas readable names in the console instead of the generated
@@ -36,8 +36,8 @@ const functions = {
   'pre-signup': backend.preSignUp,
   'post-confirmation': backend.postConfirmation,
   'complete-onboarding': backend.completeOnboarding,
-  'profile-access': backend.profileAccess,
   'resource-access': backend.resourceAccess,
+  'send-employee-invite-email': backend.sendEmployeeInviteEmail,
 };
 for (const [name, fn] of Object.entries(functions)) {
   const cfnFunction = fn.resources.lambda.node.defaultChild as CfnFunction;

@@ -1,7 +1,7 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { postConfirmation } from '../auth/post-confirmation/resource';
 import { completeOnboarding } from './complete-onboarding/resource';
-import { profileAccess } from '../functions/employees/invite/resource';
+import { sendEmployeeInviteEmail } from '../functions/employees/invite/resource';
 import { resourceAccess } from '../functions/fileAccess/resources/resource';
 import { ORG_SIZES } from './org-sizes';
 
@@ -240,7 +240,7 @@ const schema = a
       .mutation()
       .arguments({ path: a.string().required(), action: a.ref('FileAction').required() })
       .returns(a.ref('FileAccessResult'))
-      .handler(a.handler.function(profileAccess))
+      .handler(a.handler.function(resourceAccess))
       .authorization((allow) => [allow.authenticated()]),
     orgResourceFile: a
       .mutation()
@@ -248,11 +248,22 @@ const schema = a
       .returns(a.ref('FileAccessResult'))
       .handler(a.handler.function(resourceAccess))
       .authorization((allow) => [allow.authenticated()]),
+    sendEmployeeInviteEmail: a
+      .mutation()
+      .arguments({
+        to: a.string().required(),
+        subject: a.string().required(),
+        text: a.string(),
+        orgName: a.string().required(),
+      })
+      .returns(a.customType({ messageId: a.string() }))
+      .handler(a.handler.function(sendEmployeeInviteEmail))
+      .authorization((allow) => [allow.authenticated()])
   })
   .authorization((allow) => [
     allow.resource(postConfirmation),
     allow.resource(completeOnboarding),
-    allow.resource(profileAccess).to(['query']),
+    allow.resource(sendEmployeeInviteEmail).to(['query']),
     allow.resource(resourceAccess).to(['query']),
   ]);
 
