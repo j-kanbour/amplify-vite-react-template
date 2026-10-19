@@ -214,6 +214,20 @@ const schema = a
         allow.ownerDefinedIn('owner').to(['read', 'update']),
         allow.group('Admin'),
       ]),
+    //EmployeeInvite: a pending invite, matched by inviteToken when the link is opened
+    EmployeeInvite: a
+      .model({
+        email: a.string().required(),
+        orgName: a.string().required(),
+        inviteToken: a.string().required(),
+        status: a.enum(['pending', 'accepted', 'revoked']),
+        messageId: a.string(),
+        acceptedAt: a.datetime(),
+      })
+      .secondaryIndexes((index) => [index('inviteToken')])
+      .authorization((allow) => [
+        allow.group('Admin'),
+      ]),
     //Onboarding: finishes sign-up for Google users (creates their org + User)
     OnboardingResult: a.customType({
       userId: a.id().required(),
@@ -264,7 +278,7 @@ const schema = a
   .authorization((allow) => [
     allow.resource(postConfirmation),
     allow.resource(completeOnboarding),
-    allow.resource(sendEmployeeInviteEmail).to(['query']),
+    allow.resource(sendEmployeeInviteEmail).to(['query', 'mutate']),
     allow.resource(profileAccess).to(['query']),
     allow.resource(resourceAccess).to(['query']),
   ]);
