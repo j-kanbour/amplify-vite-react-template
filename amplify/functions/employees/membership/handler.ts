@@ -9,7 +9,7 @@ import { generateClient } from 'aws-amplify/data';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { env } from '$amplify/env/employee-membership';
 import type { Schema } from '../../../data/resource';
-import { hashToken, isInviteRole, normaliseEmail, toMembershipRole } from '../shared';
+import { hashToken, isInviteRole, normaliseEmail, requireAdminOrg, toMembershipRole } from '../shared';
 
 const TERMS_VERSION = '2026-09-01';
 const PRIVACY_VERSION = '2026-09-01';
@@ -117,6 +117,7 @@ async function acceptEmployeeInvite(
       role: invite.role,
       profileOwner: caller.profileOwner,
       orgId: invite.orgId,
+      orgIds: [invite.orgId],
       termsVersion: TERMS_VERSION,
       privacyVersion: PRIVACY_VERSION,
     });
@@ -135,12 +136,16 @@ async function acceptEmployeeInvite(
   if (!has(invite.orgId)) {
     await createMembership(db, user.id, invite.orgId, toMembershipRole(invite.role));
   }
-  if (user.orgId !== invite.orgId) {
-    const { errors } = await db.models.User.update({ id: user.id, orgId: invite.orgId });
+  // orgIds lets each of the user's orgs' admins read their record
+  const orgIds = [...new Set([...(user.orgIds ?? []), ...memberships.map((m) => m.orgId), user.orgId, invite.orgId])]
+    .filter((id): id is string => !!id);
+  if (user.orgId !== invite.orgId || orgIds.length !== (user.orgIds ?? []).length) {
+    const { errors } = await db.models.User.update({ id: user.id, orgId: invite.orgId, orgIds });
     if (errors?.length) throw new Error(`Failed to update user: ${JSON.stringify(errors)}`);
   }
 
-  // Cognito groups are app-wide: this grants the role's backend access
+  // The token's groups come from amplify/auth/pre-token-generation; the
+  // Cognito group only matters before the user has a User record
   await cognito.send(
     new AdminAddUserToGroupCommand({
       UserPoolId: userPoolId,
@@ -184,6 +189,50 @@ async function switchOrg(identity: AppSyncIdentity | null | undefined, orgId: st
   return { orgId };
 }
 
+type OrgRole = 'admin' | 'tutor' | 'parent';
+
+/**
+ * Makes an employee of the caller's active org an Admin or a Tutor of it.
+ * Admins can't change their own role, so an org always keeps at least one.
+ * Their next token picks up the change (see
+ * amplify/auth/pre-token-generation/handler.ts).
+ */
+async function changeEmployeeRole(identity: AppSyncIdentity | null | undefined, userId: string, role: string) {
+  const caller = cognitoIdentity(identity);
+  const db = await getDb();
+  const { me, org } = await requireAdminOrg(db, caller.profileOwner, 'Only admins can change roles.');
+  if (!isInviteRole(role)) throw new Error('Role must be Admin or Tutor.');
+  if (userId === me.id) throw new Error("You can't change your own role. Ask another admin to.");
+
+  const { data: target } = await db.models.User.get({ id: userId });
+  if (!target) throw new Error('Employee not found.');
+  const { data: memberships } = await target.memberships();
+  const membership = memberships.find((m) => m.orgId === org.id);
+  // Users from before Memberships existed only have User.orgId and User.role
+  const current = membership?.role ?? (target.orgId === org.id ? (target.role?.toLowerCase() as OrgRole | undefined) : undefined);
+  if (!current) throw new Error(`${target.name} isn't a member of ${org.name}.`);
+  if (current === 'parent') throw new Error("A parent's role can't be changed here.");
+
+  const next = toMembershipRole(role);
+  if (current !== next || !membership) {
+    const { errors } = membership
+      ? await db.models.Membership.update({ id: membership.id, role: next })
+      : await db.models.Membership.create({ userId: target.id, orgId: org.id, role: next });
+    if (errors?.length) throw new Error(`Failed to update membership: ${JSON.stringify(errors)}`);
+  }
+  // User.role is what the nav and profile show for the user's active org
+  if (target.orgId === org.id && target.role !== role) {
+    const { errors } = await db.models.User.update({ id: target.id, role });
+    if (errors?.length) throw new Error(`Failed to update user: ${JSON.stringify(errors)}`);
+  }
+  if (!target.orgIds?.includes(org.id)) {
+    const { errors } = await db.models.User.update({ id: target.id, orgIds: [...(target.orgIds ?? []), org.id] });
+    if (errors?.length) throw new Error(`Failed to update user: ${JSON.stringify(errors)}`);
+  }
+
+  return { userId: target.id, role };
+}
+
 /**
  * Amplify invokes custom-operation handlers with its own payload, which has
  * fieldName at the top level. The AppSyncResolverEvent type (and
@@ -196,7 +245,7 @@ type Event = {
   identity?: AppSyncIdentity | null;
 };
 
-/** One function serves all three operations; the payload says which. */
+/** One function serves all four operations; the payload says which. */
 export const handler = async (event: Event) => {
   const args = event.arguments ?? {};
   const str = (key: string) => (typeof args[key] === 'string' ? (args[key] as string) : '');
@@ -209,6 +258,8 @@ export const handler = async (event: Event) => {
       return acceptEmployeeInvite(event.identity, str('token'), args.acceptedTerms === true);
     case 'switchOrg':
       return switchOrg(event.identity, str('orgId'));
+    case 'changeEmployeeRole':
+      return changeEmployeeRole(event.identity, str('userId'), str('role'));
     default:
       throw new Error(`Unknown field ${fieldName}`);
   }

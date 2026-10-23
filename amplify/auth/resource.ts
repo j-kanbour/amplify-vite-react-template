@@ -1,5 +1,6 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
 import { postConfirmation } from './post-confirmation/resource';
+import { preTokenGeneration } from './pre-token-generation/resource';
 import { completeOnboarding } from '../data/complete-onboarding/resource';
 import { employeeMembership } from '../functions/employees/membership/resource';
 
@@ -62,7 +63,7 @@ export const auth = defineAuth({
     'custom:privacyVersion': { dataType: 'String', mutable: true, maxLen: 16 },
   },
   groups: ['Admin', 'Tutor', 'Parent'],
-  triggers: { postConfirmation },
+  triggers: { postConfirmation, preTokenGeneration },
   access: (allow) => [
     allow.resource(postConfirmation).to(['addUserToGroup']),
     allow.resource(completeOnboarding).to(['getUser', 'updateUserAttributes', 'addUserToGroup']),

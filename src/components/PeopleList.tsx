@@ -2,7 +2,7 @@ import { useUsers } from '../data/useUsers';
 
 /**
  * Renders whatever User records the backend returns for the signed-in user.
- * Admin: every user in the pool. Tutor / Parent: just their own record.
+ * Admin: everyone in their active org. Tutor / Parent: just their own record.
  * Same component, no role branching; the authorization rules do the work.
  */
 export default function PeopleList() {

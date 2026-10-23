@@ -10,6 +10,7 @@ import { resourceAccess } from './functions/fileAccess/resources/resource';
 import { sendEmployeeInviteEmail } from './functions/employees/invite/resource';
 import { employeeMembership } from './functions/employees/membership/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
+import { preTokenGeneration } from './auth/pre-token-generation/resource';
 import { completeOnboarding } from './data/complete-onboarding/resource';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 
@@ -26,6 +27,7 @@ const backend = defineBackend({
   profileAccess,
   resourceAccess,
   postConfirmation,
+  preTokenGeneration,
   completeOnboarding,
   sendEmployeeInviteEmail,
   employeeMembership,
@@ -39,6 +41,7 @@ const functions = {
   'my-function': backend.myFunction,
   'pre-signup': backend.preSignUp,
   'post-confirmation': backend.postConfirmation,
+  'pre-token-generation': backend.preTokenGeneration,
   'complete-onboarding': backend.completeOnboarding,
   'profile-access': backend.profileAccess,
   'resource-access': backend.resourceAccess,
@@ -65,7 +68,19 @@ backend.sendEmployeeInviteEmail.resources.lambda.addToRolePolicy(
 // Amplify's auth `access` grants don't cover. A standalone Policy rather than
 // addToRolePolicy: the function would depend on its default policy, the
 // policy on the user pool, and the pool on the function (its trigger).
-const { userPool } = backend.auth.resources;
+const { userPool, cfnResources } = backend.auth.resources;
+
+// A token's groups say which org its holder is an Admin of (see
+// amplify/auth/pre-token-generation/handler.ts) and are only worked out when
+// a token is issued. Short-lived tokens mean a role change or removal takes
+// effect within 15 minutes; Amplify refreshes them without signing out.
+cfnResources.cfnUserPoolClient.accessTokenValidity = 15;
+cfnResources.cfnUserPoolClient.idTokenValidity = 15;
+cfnResources.cfnUserPoolClient.tokenValidityUnits = {
+  accessToken: 'minutes',
+  idToken: 'minutes',
+  refreshToken: 'days',
+};
 new Policy(userPool.stack, 'PreSignUpLinkProviderPolicy', {
   statements: [
     new PolicyStatement({

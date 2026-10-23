@@ -102,6 +102,7 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
       role: 'Admin',
       profileOwner,
       orgId: org.id,
+      orgIds: [org.id],
       termsVersion: TERMS_VERSION,
       privacyVersion: PRIVACY_VERSION,
     });

@@ -5,8 +5,9 @@ export type User = Schema['User']['type'];
 
 /**
  * Live list of User records the caller is allowed to see.
- * The backend decides the scope: Admins get everyone, everyone else gets
- * only their own record (owner auth). No frontend filtering needed.
+ * The backend decides the scope: Admins get everyone in their active org,
+ * everyone else gets only their own record (owner auth). No frontend
+ * filtering needed.
  */
 export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { client, type Schema } from './client';
 import type { User } from './useUsers';
 
@@ -17,11 +17,13 @@ const ROLES = { admin: 'Admin', tutor: 'Tutor', parent: 'Parent' } as const;
  * just themselves. `users` is null while loading.
  *
  * Membership rows say who belongs where. Users from before Memberships
- * existed only have User.orgId, so those are merged in too.
+ * existed only have User.orgId, so those are merged in too. `reload` fetches
+ * them again, keeping the current list on screen until it's done.
  */
 export function useOrgUsers(orgId?: string) {
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     if (!orgId) return;
@@ -57,7 +59,9 @@ export function useOrgUsers(orgId?: string) {
     return () => {
       cancelled = true;
     };
-  }, [orgId]);
+  }, [orgId, version]);
 
-  return { users, error };
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+
+  return { users, error, reload };
 }

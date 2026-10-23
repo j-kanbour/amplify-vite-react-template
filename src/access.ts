@@ -10,6 +10,7 @@ export const permissions = {
   'org.edit':       ['Admin'],
   'users.list':     ['Admin'],
   'users.invite':   ['Admin'],
+  'users.changeRole': ['Admin'],
   'students.view':  ['Admin', 'Tutor'],
   // Tutors see only the students assigned to them
   'students.viewAll': ['Admin'],

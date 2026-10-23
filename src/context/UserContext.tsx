@@ -15,7 +15,7 @@ const ROLE_GROUPS: Record<string, Group> = { admin: 'Admin', tutor: 'Tutor', par
 type Ctx = {
   /** Groups the UI reasons about (may be a dev override). */
   groups: string[];
-  /** Groups actually in the Cognito token. */
+  /** Groups actually in the Cognito token, including the org id for admins. */
   realGroups: string[];
   user: UserRecord | null;
   org: OrgRecord | null;
@@ -104,16 +104,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     async (orgId: string) => {
       const { errors } = await client.mutations.switchOrg({ orgId });
       if (errors?.length) throw new Error(errors[0].message);
-      await load();
+      // A new token carries the new org's role (amplify/auth/pre-token-generation)
+      await load(true);
     },
     [load]
   );
 
-  // Cognito groups are app-wide (an Admin of one org and Tutor of another has
-  // both), so the UI uses the role in the active org when there is one.
-  // Users from before Memberships existed fall back to their groups.
-  const activeRole = memberships.find((m) => m.orgId === user?.orgId)?.role;
-  const roleGroups = activeRole && realGroups.includes(activeRole) ? [activeRole] : realGroups;
+  // The token holds the role in the active org (and, for admins, the org's id,
+  // which the UI ignores). It's what the backend checks, so the UI follows it
+  // rather than the Membership rows, even in the minutes before a role change
+  // reaches the token.
+  const roleGroups = realGroups.filter((g) => (GROUPS as readonly string[]).includes(g));
 
   const override = readGroupOverride(); // DEV ONLY: null in production
   const groups = override ? [override] : roleGroups;
@@ -122,7 +123,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const can = (permission: Permission) => isAllowed(permission, groups);
   // Only the app's groups count: Cognito also puts every Google user in an
   // automatic "<poolId>_Google" group.
-  const needsOnboarding = !realGroups.some((g) => (GROUPS as readonly string[]).includes(g));
+  const needsOnboarding = roleGroups.length === 0;
 
   return (
     <UserContext.Provider value={{ groups, realGroups, user, org, memberships, switchOrg, subscription, loading, needsOnboarding, refresh, has, can }}>

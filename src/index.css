@@ -1298,6 +1298,11 @@ a {
   font-size: 0.85rem;
   transition: background-color 0.15s, color 0.15s;
 }
+button.ts-directory__action {
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
 .ts-directory__action:hover {
   background: var(--ts-orange-50);
   color: var(--ts-orange);

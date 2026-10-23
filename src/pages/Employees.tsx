@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@aws-amplify/ui-react';
-import { LuCalendar, LuGraduationCap, LuListTodo, LuMail, LuPhone, LuReceipt, LuUserPlus } from 'react-icons/lu';
+import { LuCalendar, LuGraduationCap, LuListTodo, LuMail, LuPhone, LuReceipt, LuUserCog, LuUserPlus } from 'react-icons/lu';
 import { useUser } from '../context/UserContext';
 import Show from '../components/Show';
 import DirectoryList from '../components/directory/DirectoryList';
 import InviteEmployeeDialog from '../components/directory/InviteEmployeeDialog';
+import ChangeRoleDialog from '../components/directory/ChangeRoleDialog';
 import { Avatar, EmptyState, Facts, Panel } from '../components/directory/parts';
 import { useOrgUsers } from '../data/useOrgUsers';
 import type { User } from '../data/useUsers';
@@ -27,7 +28,8 @@ type FilterKey = (typeof FILTERS)[number]['key'];
 /** Where UserProfile's "Upload photo" puts their picture. */
 const photoPath = (u: User) => `users/${u.id}/avatar`;
 
-function EmployeeDetail({ employee }: { employee: User }) {
+/** onChangeRole is left out when the viewer can't change this employee's role. */
+function EmployeeDetail({ employee, onChangeRole }: { employee: User; onChangeRole?: () => void }) {
   const complete = isOnboarded(employee);
 
   return (
@@ -53,6 +55,11 @@ function EmployeeDetail({ employee }: { employee: User }) {
             <a className="ts-directory__action" href={`tel:${employee.phone}`}>
               <LuPhone aria-hidden /> Call
             </a>
+          )}
+          {onChangeRole && (
+            <button type="button" className="ts-directory__action" onClick={onChangeRole}>
+              <LuUserCog aria-hidden /> Change role
+            </button>
           )}
         </div>
       </section>
@@ -98,11 +105,12 @@ function EmployeeDetail({ employee }: { employee: User }) {
 
 /** Employee management: everyone in the org except parents, with the selected one's details beside the list. */
 export default function Employees() {
-  const { org, user: me } = useUser();
-  const { users, error } = useOrgUsers(org?.id);
+  const { org, user: me, can } = useUser();
+  const { users, error, reload } = useOrgUsers(org?.id);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
   const [inviting, setInviting] = useState(false);
+  const [changingRole, setChangingRole] = useState<User | null>(null);
   // Selection lives in the URL so a particular employee can be linked to
   const [params, setParams] = useSearchParams();
 
@@ -149,7 +157,13 @@ export default function Employees() {
       />
 
       {selected ? (
-        <EmployeeDetail employee={selected} />
+        <EmployeeDetail
+          employee={selected}
+          // The backend refuses changes to your own role, so an org always keeps an admin
+          onChangeRole={
+            can('users.changeRole') && selected.id !== me?.id ? () => setChangingRole(selected) : undefined
+          }
+        />
       ) : (
         users !== null && (
           <section className="ts-directory__panel">
@@ -159,6 +173,7 @@ export default function Employees() {
       )}
 
       <InviteEmployeeDialog open={inviting} onClose={() => setInviting(false)} />
+      <ChangeRoleDialog employee={changingRole} onClose={() => setChangingRole(null)} onChanged={reload} />
     </main>
   );
 }

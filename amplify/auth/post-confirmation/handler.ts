@@ -81,6 +81,7 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
     role: 'Admin',
     profileOwner: `${attrs.sub}::${event.userName}`,
     orgId: org.id,
+    orgIds: [org.id],
     termsVersion: attrs['custom:termsVersion'] ?? null,
     privacyVersion: attrs['custom:privacyVersion'] ?? null,
   });

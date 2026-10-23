@@ -6,7 +6,7 @@ import { generateClient } from "aws-amplify/data";
 import { getAmplifyDataClientConfig } from "@aws-amplify/backend/function/runtime";
 import { env } from "$amplify/env/send-employee-invite-email";
 import type { Schema } from "../../../data/resource";
-import { INVITE_TTL_MS, hashToken, isInviteRole, normaliseEmail } from "../shared";
+import { INVITE_TTL_MS, hashToken, isInviteRole, normaliseEmail, requireAdminOrg } from "../shared";
 
 // Built on first invoke, not at import time: see the note in
 // amplify/auth/post-confirmation/handler.ts.
@@ -27,29 +27,6 @@ type Db = ReturnType<typeof generateClient<Schema>>;
 // no retry loop here: retrying a rejected message won't change the answer.
 const ses = new SESv2Client({});
 const FROM = "jkanbour1@gmail.com";
-
-/**
- * The caller's active org, provided they're an Admin of it. Users made before
- * Memberships existed have none, so their User.role stands in.
- */
-async function requireAdminOrg(db: Db, identity: AppSyncIdentityCognito | null) {
-  if (!identity?.sub || !identity.username) throw new Error("Unauthorized");
-
-  const { data: users } = await db.models.User.listUserByProfileOwner({
-    profileOwner: `${identity.sub}::${identity.username}`,
-  });
-  const me = users[0];
-  if (!me?.orgId) throw new Error("You're not part of an organisation.");
-
-  const { data: memberships } = await me.memberships();
-  const membership = memberships.find((m) => m.orgId === me.orgId);
-  const isAdmin = membership ? membership.role === "admin" : me.role === "Admin";
-  if (!isAdmin) throw new Error("Only admins can invite employees.");
-
-  const { data: org } = await db.models.Organisation.get({ id: me.orgId });
-  if (!org) throw new Error("Organisation not found.");
-  return { me, org };
-}
 
 async function isAlreadyMember(db: Db, email: string, orgId: string) {
   const { data: users } = await db.models.User.listUserByEmail({ email });
@@ -73,7 +50,13 @@ async function revokePendingInvites(db: Db, email: string, orgId: string) {
 
 export const handler: Schema["sendEmployeeInviteEmail"]["functionHandler"] = async (event) => {
   const db = await getDb();
-  const { me, org } = await requireAdminOrg(db, event.identity as AppSyncIdentityCognito | null);
+  const identity = event.identity as AppSyncIdentityCognito | null;
+  if (!identity?.sub || !identity.username) throw new Error("Unauthorized");
+  const { me, org } = await requireAdminOrg(
+    db,
+    `${identity.sub}::${identity.username}`,
+    "Only admins can invite employees."
+  );
 
   const email = normaliseEmail(event.arguments.email);
   const name = event.arguments.name.trim();
