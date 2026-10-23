@@ -111,7 +111,20 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
     user = created;
   }
 
-  // 3. Mirror the answers onto the Cognito user, as email sign-up does
+  // 3. Record them as the org's admin (a retry may have done this already)
+  const { data: memberships } = await user.memberships();
+  if (user.orgId && !memberships.some((m) => m.orgId === user.orgId)) {
+    const { errors: membershipErrors } = await db.models.Membership.create({
+      userId: user.id,
+      orgId: user.orgId,
+      role: 'admin',
+    });
+    if (membershipErrors) {
+      throw new Error(`Failed to create membership: ${JSON.stringify(membershipErrors)}`);
+    }
+  }
+
+  // 4. Mirror the answers onto the Cognito user, as email sign-up does
   await cognito.send(
     new AdminUpdateUserAttributesCommand({
       UserPoolId: userPoolId,
@@ -126,7 +139,7 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
     })
   );
 
-  // 4. Last: joining a group is what marks onboarding as complete
+  // 5. Last: joining a group is what marks onboarding as complete
   await cognito.send(
     new AdminAddUserToGroupCommand({
       UserPoolId: userPoolId,

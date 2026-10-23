@@ -3,7 +3,6 @@ import { Alert, Button, SelectField, TextAreaField, TextField } from '@aws-ampli
 import { LuX } from 'react-icons/lu';
 import { validateEmail, validatePhone } from '../../utils/validation';
 import { client } from '../../data/client';
-import { useUser } from '../../context/UserContext';
 
 const ROLES = ['Admin', 'Tutor'] as const;
 
@@ -22,7 +21,6 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
   const [errors, setErrors] = useState<Partial<Record<keyof Values, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const { org } = useUser();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -68,11 +66,14 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
     setSendError(null);
     setSubmitting(true);
     try {
+      // The org is the sender's own; the Lambda works it out and checks they're its Admin
       const { errors: sendErrors } = await client.mutations.sendEmployeeInviteEmail({
-        to: v.email,
-        subject: `You've been invited to join ${org?.name ?? 'Tutor Studio'}`,
-        text: v.message || undefined,
-        orgName: org?.name ?? '',
+        email: v.email,
+        name: v.name,
+        role: v.role,
+        phone: v.phone || undefined,
+        startDate: v.startDate || undefined,
+        message: v.message || undefined,
       });
       if (sendErrors?.length) throw new Error(sendErrors[0].message);
       onClose();

@@ -8,6 +8,7 @@ import { storageProfileData, storageOrgResources } from './storage/resource';
 import { profileAccess } from './functions/fileAccess/profiles/resource';
 import { resourceAccess } from './functions/fileAccess/resources/resource';
 import { sendEmployeeInviteEmail } from './functions/employees/invite/resource';
+import { employeeMembership } from './functions/employees/membership/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
 import { completeOnboarding } from './data/complete-onboarding/resource';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
@@ -26,7 +27,8 @@ const backend = defineBackend({
   resourceAccess,
   postConfirmation,
   completeOnboarding,
-  sendEmployeeInviteEmail
+  sendEmployeeInviteEmail,
+  employeeMembership,
 });
 
 // Give the Lambdas readable names in the console instead of the generated
@@ -41,12 +43,23 @@ const functions = {
   'profile-access': backend.profileAccess,
   'resource-access': backend.resourceAccess,
   'send-employee-invite-email': backend.sendEmployeeInviteEmail,
+  'employee-membership': backend.employeeMembership,
 };
 for (const [name, fn] of Object.entries(functions)) {
   const cfnFunction = fn.resources.lambda.node.defaultChild as CfnFunction;
   // Lambda names are capped at 64 characters.
   cfnFunction.functionName = `amplify-template-${envName}-${name}`.slice(0, 64);
 }
+
+// The invite Lambda sends through SES, which defineFunction grants nothing for.
+// identity/* rather than just the sender: while the account is in the SES
+// sandbox, the (verified) recipient's identity is checked too.
+backend.sendEmployeeInviteEmail.resources.lambda.addToRolePolicy(
+  new PolicyStatement({
+    actions: ['ses:SendEmail'],
+    resources: [`arn:aws:ses:${backend.stack.region}:${backend.stack.account}:identity/*`],
+  })
+);
 
 // The pre-signup trigger links Google sign-ins to email accounts, which
 // Amplify's auth `access` grants don't cover. A standalone Policy rather than

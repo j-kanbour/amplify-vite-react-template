@@ -2,6 +2,7 @@ import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { postConfirmation } from '../auth/post-confirmation/resource';
 import { completeOnboarding } from './complete-onboarding/resource';
 import { sendEmployeeInviteEmail } from '../functions/employees/invite/resource';
+import { employeeMembership } from '../functions/employees/membership/resource';
 import { profileAccess } from '../functions/fileAccess/profiles/resource';
 import { resourceAccess } from '../functions/fileAccess/resources/resource';
 import { ORG_SIZES } from './org-sizes';
@@ -47,8 +48,9 @@ const schema = a
         guardianships: a.hasMany('Guardian', 'userId'),
         lessons: a.hasMany('LessonTutor', 'tutorId'),
       })
-      // lets a user (and the onboarding Lambda) look up their own record
-      .secondaryIndexes((index) => [index('profileOwner')])
+      // profileOwner: a user (and the onboarding Lambda) looks up their own record
+      // email: the invite Lambda checks whether the invitee is already a member
+      .secondaryIndexes((index) => [index('profileOwner'), index('email')])
       .authorization((allow) => [
         allow.ownerDefinedIn('profileOwner'),
         allow.group('Admin'),
@@ -214,17 +216,26 @@ const schema = a
         allow.ownerDefinedIn('owner').to(['read', 'update']),
         allow.group('Admin'),
       ]),
-    //EmployeeInvite: a pending invite, matched by inviteToken when the link is opened
+    //EmployeeInvite: an invite into an org, matched by the token in the emailed link
     EmployeeInvite: a
       .model({
-        email: a.string().required(),
+        email: a.string().required(), // lowercased
+        name: a.string(),
+        phone: a.string(),
+        role: a.enum(['Admin', 'Tutor']),
+        startDate: a.date(),
+        orgId: a.id(),
         orgName: a.string().required(),
-        inviteToken: a.string().required(),
-        status: a.enum(['pending', 'accepted', 'revoked']),
+        // sha256 of the token in the link; the token itself is never stored
+        inviteTokenHash: a.string(),
+        status: a.enum(['pending', 'accepted', 'revoked', 'failed']),
+        invitedBy: a.id(),
+        expiresAt: a.datetime(),
         messageId: a.string(),
         acceptedAt: a.datetime(),
+        acceptedBy: a.id(),
       })
-      .secondaryIndexes((index) => [index('inviteToken')])
+      .secondaryIndexes((index) => [index('inviteTokenHash'), index('email')])
       .authorization((allow) => [
         allow.group('Admin'),
       ]),
@@ -263,22 +274,63 @@ const schema = a
       .returns(a.ref('FileAccessResult'))
       .handler(a.handler.function(resourceAccess))
       .authorization((allow) => [allow.authenticated()]),
+    //Employee invites. The org comes from the caller's own record, never the
+    // arguments, and the Lambda checks they're an Admin of it.
     sendEmployeeInviteEmail: a
       .mutation()
       .arguments({
-        to: a.string().required(),
-        subject: a.string().required(),
-        text: a.string(),
-        orgName: a.string().required(),
+        email: a.string().required(),
+        name: a.string().required(),
+        role: a.string().required(), // 'Admin' | 'Tutor'
+        phone: a.string(),
+        startDate: a.date(),
+        message: a.string(),
+        // public URL of the org's logo, shown at the top of the email
+        logoUrl: a.string(),
       })
-      .returns(a.customType({ messageId: a.string() }))
+      .returns(a.customType({ inviteId: a.id(), messageId: a.string() }))
       .handler(a.handler.function(sendEmployeeInviteEmail))
+      .authorization((allow) => [allow.authenticated()]),
+    // What the invite link's landing page may show. Callable before sign-in, so
+    // it returns only this, never the invite record.
+    EmployeeInvitePreview: a.customType({
+      // 'valid' | 'expired' | 'accepted' | 'revoked' | 'invalid'
+      status: a.string().required(),
+      orgName: a.string(),
+      role: a.string(),
+      email: a.string(),
+      name: a.string(),
+    }),
+    previewEmployeeInvite: a
+      .query()
+      .arguments({ token: a.string().required() })
+      .returns(a.ref('EmployeeInvitePreview'))
+      .handler(a.handler.function(employeeMembership))
+      .authorization((allow) => [allow.guest(), allow.authenticated()]),
+    // Joins the signed-in user to the invite's org; their email must match it
+    acceptEmployeeInvite: a
+      .mutation()
+      .arguments({
+        token: a.string().required(),
+        // required when the user has no User record yet
+        acceptedTerms: a.boolean(),
+      })
+      .returns(a.customType({ orgId: a.id().required() }))
+      .handler(a.handler.function(employeeMembership))
+      .authorization((allow) => [allow.authenticated()]),
+    // Sets which of the caller's orgs the app shows (User.orgId)
+    switchOrg: a
+      .mutation()
+      .arguments({ orgId: a.id().required() })
+      .returns(a.customType({ orgId: a.id().required() }))
+      .handler(a.handler.function(employeeMembership))
       .authorization((allow) => [allow.authenticated()])
   })
   .authorization((allow) => [
     allow.resource(postConfirmation),
     allow.resource(completeOnboarding),
     allow.resource(sendEmployeeInviteEmail).to(['query', 'mutate']),
+    allow.resource(employeeMembership).to(['query', 'mutate']),
     allow.resource(profileAccess).to(['query']),
     allow.resource(resourceAccess).to(['query']),
   ]);

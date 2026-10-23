@@ -1,6 +1,7 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
 import { postConfirmation } from './post-confirmation/resource';
 import { completeOnboarding } from '../data/complete-onboarding/resource';
+import { employeeMembership } from '../functions/employees/membership/resource';
 
 /**
  * OAuth redirect targets, set as environment variables on the Amplify app
@@ -41,6 +42,9 @@ export const auth = defineAuth({
         scopes: ['email', 'profile', 'openid'],
         attributeMapping: {
           email: 'email',
+          // Accepting an invite checks the address is verified (see
+          // amplify/functions/employees/membership/handler.ts)
+          emailVerified: 'email_verified',
           fullname: 'name',
         },
       },
@@ -62,5 +66,6 @@ export const auth = defineAuth({
   access: (allow) => [
     allow.resource(postConfirmation).to(['addUserToGroup']),
     allow.resource(completeOnboarding).to(['getUser', 'updateUserAttributes', 'addUserToGroup']),
+    allow.resource(employeeMembership).to(['getUser', 'addUserToGroup']),
   ],
 });
