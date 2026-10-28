@@ -2,13 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { client, type Schema } from '../data/client';
 import { GROUPS, isAllowed, type Group, type Permission } from '../access';
+import { listUploadedDocuments } from '../data/employeeDocuments';
 import { readGroupOverride } from '../dev/roleOverride'; // DEV ONLY, see src/dev
 
 type UserRecord = Schema['User']['type'];
 type OrgRecord = Schema['Organisation']['type'];
 
-/** An org the user belongs to, and their role in it. */
-export type OrgMembership = { orgId: string; orgName: string; role: Group };
+/** An org the user belongs to, their role in it, and the documents it asked them for. */
+export type OrgMembership = { orgId: string; orgName: string; role: Group; requiredDocuments: string[] };
 
 const ROLE_GROUPS: Record<string, Group> = { admin: 'Admin', tutor: 'Tutor', parent: 'Parent' };
 
@@ -30,6 +31,8 @@ type Ctx = {
    * the onboarding page. Email sign-ups get their group in post-confirmation.
    */
   needsOnboarding: boolean;
+  /** Documents the active org asked for that the user hasn't uploaded yet. */
+  missingDocuments: string[];
   /** Re-fetch tokens (picking up new groups) and the user's records. */
   refresh: () => Promise<void>;
   /** Raw group check. Prefer `can` in components. */
@@ -48,6 +51,7 @@ const UserContext = createContext<Ctx>({
   subscription: 'free',
   loading: true,
   needsOnboarding: false,
+  missingDocuments: [],
   refresh: async () => {},
   has: () => false,
   can: () => false,
@@ -58,6 +62,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserRecord | null>(null);
   const [org, setOrg] = useState<OrgRecord | null>(null);
   const [memberships, setMemberships] = useState<OrgMembership[]>([]);
+  const [missingDocuments, setMissingDocuments] = useState<string[]>([]);
   const [subscription, setSubscription] = useState('free');
   const [loading, setLoading] = useState(true);
 
@@ -82,10 +87,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const named = await Promise.all(
       rows.map(async (m) => {
         const { data: o } = m.orgId === orgData?.id ? { data: orgData } : await m.org();
-        return { orgId: m.orgId, orgName: o?.name ?? 'Organisation', role: ROLE_GROUPS[m.role ?? ''] };
+        return {
+          orgId: m.orgId,
+          orgName: o?.name ?? 'Organisation',
+          role: ROLE_GROUPS[m.role ?? ''],
+          requiredDocuments: (m.requiredDocuments ?? []).filter((d): d is string => !!d),
+        };
       })
     );
     setMemberships(named.filter((m) => m.role).sort((a, b) => a.orgName.localeCompare(b.orgName)));
+
+    // Only asks S3 when the active org wants documents, which most don't
+    const required = named.find((m) => m.orgId === me?.orgId)?.requiredDocuments ?? [];
+    const uploaded = me && required.length ? await listUploadedDocuments(me.id) : [];
+    setMissingDocuments(required.filter((d) => !uploaded.includes(d)));
   }, []);
 
   useEffect(() => {
@@ -126,7 +141,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const needsOnboarding = roleGroups.length === 0;
 
   return (
-    <UserContext.Provider value={{ groups, realGroups, user, org, memberships, switchOrg, subscription, loading, needsOnboarding, refresh, has, can }}>
+    <UserContext.Provider value={{ groups, realGroups, user, org, memberships, switchOrg, subscription, loading, needsOnboarding, missingDocuments, refresh, has, can }}>
       {children}
     </UserContext.Provider>
   );

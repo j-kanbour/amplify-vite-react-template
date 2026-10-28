@@ -3,6 +3,8 @@ import {
   CognitoIdentityProviderClient,
   AdminAddUserToGroupCommand,
   AdminGetUserCommand,
+  AdminListGroupsForUserCommand,
+  AdminRemoveUserFromGroupCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
@@ -134,7 +136,8 @@ async function acceptEmployeeInvite(
     await createMembership(db, user.id, user.orgId, user.role.toLowerCase() as 'admin' | 'tutor' | 'parent');
   }
   if (!has(invite.orgId)) {
-    await createMembership(db, user.id, invite.orgId, toMembershipRole(invite.role));
+    const requiredDocuments = (invite.requiredDocuments ?? []).filter((d): d is string => !!d);
+    await createMembership(db, user.id, invite.orgId, toMembershipRole(invite.role), requiredDocuments);
   }
   // orgIds lets each of the user's orgs' admins read their record
   const orgIds = [...new Set([...(user.orgIds ?? []), ...memberships.map((m) => m.orgId), user.orgId, invite.orgId])]
@@ -167,8 +170,14 @@ async function acceptEmployeeInvite(
   return { orgId: invite.orgId };
 }
 
-async function createMembership(db: Db, userId: string, orgId: string, role: 'admin' | 'tutor' | 'parent') {
-  const { errors } = await db.models.Membership.create({ userId, orgId, role });
+async function createMembership(
+  db: Db,
+  userId: string,
+  orgId: string,
+  role: 'admin' | 'tutor' | 'parent',
+  requiredDocuments?: string[]
+) {
+  const { errors } = await db.models.Membership.create({ userId, orgId, role, requiredDocuments });
   if (errors?.length) throw new Error(`Failed to add membership: ${JSON.stringify(errors)}`);
 }
 
@@ -233,6 +242,119 @@ async function changeEmployeeRole(identity: AppSyncIdentity | null | undefined, 
   return { userId: target.id, role };
 }
 
+/** Every page of a filtered list (a scan, so pages can come back short). */
+async function listAll<T>(
+  list: (nextToken?: string | null) => Promise<{ data: T[]; nextToken?: string | null; errors?: unknown[] }>
+) {
+  const rows: T[] = [];
+  let nextToken: string | null | undefined;
+  do {
+    const page = await list(nextToken);
+    if (page.errors?.length) throw new Error(`Failed to list: ${JSON.stringify(page.errors)}`);
+    rows.push(...page.data);
+    nextToken = page.nextToken;
+  } while (nextToken);
+  return rows;
+}
+
+/**
+ * Removes an employee from the caller's active org. They lose access as their
+ * token next refreshes (within 15 minutes, see amplify/backend.ts). Their
+ * account, uploaded documents and any other orgs are kept; if this was the
+ * org they had open, they're moved to another of theirs. With none left they
+ * also leave Cognito's app groups, so they're back to an account that hasn't
+ * been set up, and can start their own org or accept another invite.
+ *
+ * Every step is safe to repeat, so a failure part way through can be retried.
+ */
+async function offboardEmployee(identity: AppSyncIdentity | null | undefined, userId: string) {
+  const caller = cognitoIdentity(identity);
+  const db = await getDb();
+  const { me, org } = await requireAdminOrg(db, caller.profileOwner, 'Only admins can offboard employees.');
+  if (userId === me.id) throw new Error("You can't offboard yourself. Ask another admin to.");
+
+  const { data: target } = await db.models.User.get({ id: userId });
+  if (!target) throw new Error('Employee not found.');
+  const { data: memberships } = await target.memberships();
+  const here = memberships.filter((m) => m.orgId === org.id);
+  // Users from before Memberships existed only have User.orgId and User.role
+  const isLegacyMember = target.orgId === org.id && !here.length;
+  if (!here.length && !isLegacyMember && !target.orgIds?.includes(org.id)) {
+    throw new Error(`${target.name} isn't a member of ${org.name}.`);
+  }
+  const role = here[0]?.role ?? target.role?.toLowerCase();
+  if (role === 'parent') throw new Error("Parents can't be offboarded here.");
+
+  // Their tutor assignments in this org, and with them the students' viewers
+  // entries, which are what let a tutor read a student
+  const assignments = await listAll((nextToken) =>
+    db.models.TutorAssignment.list({ filter: { tutorId: { eq: target.id } }, nextToken })
+  );
+  const studentOf = async (a: (typeof assignments)[number]) => (await a.enrollment()).data?.studentId;
+  const leaving = assignments.filter((a) => a.orgId === org.id);
+  const staying = assignments.filter((a) => a.orgId !== org.id);
+  const stillTutored = new Set(await Promise.all(staying.map(studentOf)));
+  const studentIds = new Set((await Promise.all(leaving.map(studentOf))).filter((id): id is string => !!id));
+  for (const a of leaving) {
+    const { errors } = await db.models.TutorAssignment.delete({ id: a.id });
+    if (errors?.length) throw new Error(`Failed to remove assignment: ${JSON.stringify(errors)}`);
+  }
+  if (target.profileOwner) {
+    for (const studentId of studentIds) {
+      if (stillTutored.has(studentId)) continue;
+      const { data: student } = await db.models.Student.get({ id: studentId });
+      if (!student?.viewers?.includes(target.profileOwner)) continue;
+      const viewers = student.viewers.filter((v) => v !== target.profileOwner);
+      const { errors } = await db.models.Student.update({ id: studentId, viewers });
+      if (errors?.length) throw new Error(`Failed to update student: ${JSON.stringify(errors)}`);
+    }
+  }
+
+  // An invite still in their inbox would let them straight back in
+  const invites = await db.models.EmployeeInvite.listEmployeeInviteByEmail({ email: normaliseEmail(target.email) });
+  await Promise.all(
+    invites.data
+      .filter((i) => i.orgId === org.id && i.status === 'pending')
+      .map((i) => db.models.EmployeeInvite.update({ id: i.id, status: 'revoked' }))
+  );
+
+  for (const m of here) {
+    const { errors } = await db.models.Membership.delete({ id: m.id });
+    if (errors?.length) throw new Error(`Failed to remove membership: ${JSON.stringify(errors)}`);
+  }
+
+  // Dropping the org from orgIds is what takes the record out of its admins' reach
+  const others = memberships.filter((m) => m.orgId !== org.id);
+  const orgIds = (target.orgIds ?? []).filter((id): id is string => !!id && id !== org.id);
+  const next = target.orgId === org.id ? others[0] : undefined;
+  const { errors } = await db.models.User.update({
+    id: target.id,
+    orgIds,
+    ...(target.orgId === org.id && {
+      orgId: next?.orgId ?? null,
+      role: next?.role ? (({ admin: 'Admin', tutor: 'Tutor', parent: 'Parent' }) as const)[next.role] : null,
+    }),
+  });
+  if (errors?.length) throw new Error(`Failed to update user: ${JSON.stringify(errors)}`);
+
+  // No orgs left: the token would otherwise fall back to these groups (see
+  // amplify/auth/pre-token-generation) and still say Admin or Tutor
+  const username = target.profileOwner?.split('::')[1];
+  if (!others.length && (target.orgId === org.id || !target.orgId) && username) {
+    const { Groups = [] } = await cognito.send(
+      new AdminListGroupsForUserCommand({ UserPoolId: env.AMPLIFY_AUTH_USERPOOL_ID, Username: username })
+    );
+    for (const { GroupName } of Groups) {
+      if (GroupName !== 'Admin' && GroupName !== 'Tutor') continue;
+      await cognito.send(
+        new AdminRemoveUserFromGroupCommand({ UserPoolId: env.AMPLIFY_AUTH_USERPOOL_ID, Username: username, GroupName })
+      );
+    }
+  }
+
+  return { userId: target.id };
+}
+
 /**
  * Amplify invokes custom-operation handlers with its own payload, which has
  * fieldName at the top level. The AppSyncResolverEvent type (and
@@ -245,7 +367,7 @@ type Event = {
   identity?: AppSyncIdentity | null;
 };
 
-/** One function serves all four operations; the payload says which. */
+/** One function serves all five operations; the payload says which. */
 export const handler = async (event: Event) => {
   const args = event.arguments ?? {};
   const str = (key: string) => (typeof args[key] === 'string' ? (args[key] as string) : '');
@@ -260,6 +382,8 @@ export const handler = async (event: Event) => {
       return switchOrg(event.identity, str('orgId'));
     case 'changeEmployeeRole':
       return changeEmployeeRole(event.identity, str('userId'), str('role'));
+    case 'offboardEmployee':
+      return offboardEmployee(event.identity, str('userId'));
     default:
       throw new Error(`Unknown field ${fieldName}`);
   }

@@ -16,6 +16,8 @@ import UserProfile from './pages/UserProfile';
 import OrgProfile from './pages/OrgProfile';
 import JoinInvite from './pages/JoinInvite';
 import AcceptInvite from './pages/AcceptInvite';
+import OnboardingDocuments from './pages/OnboardingDocuments';
+import NoOrganisation from './pages/NoOrganisation';
 import { readPendingInvite } from './utils/pendingInvite';
 
 /**
@@ -25,18 +27,33 @@ import { readPendingInvite } from './utils/pendingInvite';
  *
  * A pending invite comes first: someone who signed up from an invite link
  * finishes on the accept page instead of setting up a business of their own.
+ * Then, if the org they're in asked for documents, they upload those.
+ *
+ * Someone with a User record but no org was offboarded from every org they
+ * were in: they're told so, and can go on to set up an org of their own.
  */
 function OnboardingGate() {
-  const { loading, needsOnboarding } = useUser();
+  const { loading, needsOnboarding, missingDocuments, user } = useUser();
   // Match the route rather than comparing strings: Amplify Hosting redirects
   // /onboarding to /onboarding/, which the route still renders.
   const onOnboarding = useMatch('/onboarding') !== null;
   const onAcceptInvite = useMatch('/join/accept') !== null;
+  const onDocuments = useMatch('/onboarding/documents') !== null;
+  const onNoOrg = useMatch('/no-organisation') !== null;
+  const noOrg = !!user && !user.orgId;
   if (loading) return <p>Loading…</p>;
   if (onAcceptInvite) return <Outlet />;
   if (readPendingInvite()) return <Navigate to="/join/accept" replace />;
+  if (noOrg) {
+    // /onboarding only once their token has dropped the role they had
+    if (onNoOrg || (onOnboarding && needsOnboarding)) return <Outlet />;
+    return <Navigate to="/no-organisation" replace />;
+  }
+  if (onNoOrg) return <Navigate to="/" replace />;
   if (needsOnboarding && !onOnboarding) return <Navigate to="/onboarding" replace />;
   if (!needsOnboarding && onOnboarding) return <Navigate to="/" replace />;
+  if (missingDocuments.length && !onDocuments) return <Navigate to="/onboarding/documents" replace />;
+  if (!missingDocuments.length && onDocuments) return <Navigate to="/" replace />;
   return <Outlet />;
 }
 
@@ -73,6 +90,8 @@ function AuthedApp() {
           <Route element={<OnboardingGate />}>
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/join/accept" element={<AcceptInvite />} />
+            <Route path="/onboarding/documents" element={<OnboardingDocuments />} />
+            <Route path="/no-organisation" element={<NoOrganisation />} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />

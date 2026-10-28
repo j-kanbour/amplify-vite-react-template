@@ -6,6 +6,7 @@ import { generateClient } from "aws-amplify/data";
 import { getAmplifyDataClientConfig } from "@aws-amplify/backend/function/runtime";
 import { env } from "$amplify/env/send-employee-invite-email";
 import type { Schema } from "../../../data/resource";
+import { documentLabel, isEmployeeDocument } from "../../../data/employee-documents";
 import { INVITE_TTL_MS, hashToken, isInviteRole, normaliseEmail, requireAdminOrg } from "../shared";
 
 // Built on first invoke, not at import time: see the note in
@@ -64,6 +65,8 @@ export const handler: Schema["sendEmployeeInviteEmail"]["functionHandler"] = asy
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Enter a valid email address.");
   if (!name) throw new Error("Full name is required.");
   if (!isInviteRole(role)) throw new Error("Role must be Admin or Tutor.");
+  const requiredDocuments = [...new Set(event.arguments.requiredDocuments ?? [])].filter((d) => d != null);
+  if (!requiredDocuments.every(isEmployeeDocument)) throw new Error("Unknown document type.");
 
   if (await isAlreadyMember(db, email, org.id)) {
     throw new Error(`${email} is already a member of ${org.name}.`);
@@ -78,6 +81,7 @@ export const handler: Schema["sendEmployeeInviteEmail"]["functionHandler"] = asy
     phone: phone?.trim() || null,
     role,
     startDate: startDate || null,
+    requiredDocuments,
     orgId: org.id,
     orgName: org.name,
     inviteTokenHash: hashToken(inviteToken),
@@ -97,6 +101,7 @@ export const handler: Schema["sendEmployeeInviteEmail"]["functionHandler"] = asy
     inviteLink: generateInviteLink(inviteToken),
     logoUrl,
     message,
+    documents: requiredDocuments.map(documentLabel),
   };
 
   let messageId: string | undefined;
@@ -163,9 +168,11 @@ type EmailContent = {
   /** Public, non-expiring URL (a presigned S3 URL will break once it expires). */
   logoUrl?: string | null;
   message?: string | null;
+  /** Labels of the documents they'll be asked to upload. */
+  documents: string[];
 };
 
-const buildHtmlEmail = ({ inviteeName, orgName, role, inviteLink, logoUrl, message }: EmailContent) => {
+const buildHtmlEmail = ({ inviteeName, orgName, role, inviteLink, logoUrl, message, documents }: EmailContent) => {
   const org = escapeHtml(orgName);
   const link = escapeHtml(inviteLink);
   const greeting = inviteeName ? `Hi ${escapeHtml(inviteeName)},` : "Hi there,";
@@ -177,6 +184,13 @@ const buildHtmlEmail = ({ inviteeName, orgName, role, inviteLink, logoUrl, messa
   const note = message
     ? `<tr><td style="padding:0 0 24px;">
         <div style="background:${C.orange50};border-left:4px solid ${C.orange};border-radius:8px;padding:14px 16px;font-size:15px;line-height:1.5;color:${C.ink};white-space:pre-line;">${escapeHtml(message)}</div>
+      </td></tr>`
+    : "";
+
+  const docs = documents.length
+    ? `<tr><td style="padding:0 0 24px;font-size:15px;line-height:1.6;color:${C.ink2};">
+        When you join you'll be asked to upload:
+        <ul style="margin:8px 0 0;padding-left:20px;color:${C.ink};">${documents.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}</ul>
       </td></tr>`
     : "";
 
@@ -202,6 +216,7 @@ const buildHtmlEmail = ({ inviteeName, orgName, role, inviteLink, logoUrl, messa
                 ${org} has invited you to join their team on Tutor Studio as ${role === "Admin" ? "an Admin" : "a Tutor"}. Accept the invitation to set up your account, or to add ${org} to the account you already have. The link works for 7 days.
               </td></tr>
               ${note}
+              ${docs}
               <tr><td align="center" style="padding:0 0 24px;">
                 <a href="${link}" style="display:inline-block;background:${C.orange};color:#ffffff;font-family:${FONT_BODY};font-size:16px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:999px;">Accept invitation</a>
               </td></tr>
@@ -222,12 +237,13 @@ const buildHtmlEmail = ({ inviteeName, orgName, role, inviteLink, logoUrl, messa
 </html>`;
 };
 
-const buildTextEmail = ({ inviteeName, orgName, role, inviteLink, message }: EmailContent) =>
+const buildTextEmail = ({ inviteeName, orgName, role, inviteLink, message, documents }: EmailContent) =>
   [
     inviteeName ? `Hi ${inviteeName},` : "Hi there,",
     "",
     `${orgName} has invited you to join their team on Tutor Studio as ${role === "Admin" ? "an Admin" : "a Tutor"}.`,
     ...(message ? ["", message] : []),
+    ...(documents.length ? ["", "When you join you'll be asked to upload:", ...documents.map((d) => `- ${d}`)] : []),
     "",
     `Accept the invitation (the link works for 7 days): ${inviteLink}`,
     "",

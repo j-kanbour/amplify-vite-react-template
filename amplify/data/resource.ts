@@ -105,6 +105,8 @@ const schema = a
         userId: a.id().required(),
         orgId: a.id().required(),
         role: a.enum(['admin', 'tutor', 'parent']),
+        // keys from employee-documents.ts this org asked for when inviting them
+        requiredDocuments: a.string().array(),
         user: a.belongsTo('User', 'userId'),
         org: a.belongsTo('Organisation', 'orgId'),
       })
@@ -283,6 +285,8 @@ const schema = a
         phone: a.string(),
         role: a.enum(['Admin', 'Tutor']),
         startDate: a.date(),
+        // keys from employee-documents.ts, copied to the Membership on accept
+        requiredDocuments: a.string().array(),
         orgId: a.id(),
         orgName: a.string().required(),
         // sha256 of the token in the link; the token itself is never stored
@@ -323,7 +327,14 @@ const schema = a
     }),
     profileFile: a
       .mutation()
-      .arguments({ path: a.string().required(), action: a.ref('FileAction').required() })
+      .arguments({
+        path: a.string().required(),
+        action: a.ref('FileAction').required(),
+        // put only: the file's type and size in bytes, checked against
+        // upload-rules.ts and bound into the URL
+        contentType: a.string(),
+        size: a.integer(),
+      })
       .returns(a.ref('FileAccessResult'))
       .handler(a.handler.function(profileAccess))
       .authorization((allow) => [allow.authenticated()]),
@@ -344,6 +355,8 @@ const schema = a
         phone: a.string(),
         startDate: a.date(),
         message: a.string(),
+        // keys from employee-documents.ts they must upload when joining
+        requiredDocuments: a.string().array(),
         // public URL of the org's logo, shown at the top of the email
         logoUrl: a.string(),
       })
@@ -393,6 +406,15 @@ const schema = a
         role: a.string().required(), // 'Admin' | 'Tutor'
       })
       .returns(a.customType({ userId: a.id().required(), role: a.string().required() }))
+      .handler(a.handler.function(employeeMembership))
+      .authorization((allow) => [allow.authenticated()]),
+    // Removes an employee from the caller's active org: their Membership,
+    // tutor assignments and pending invites there. Their account and any
+    // other orgs are kept. The Lambda checks the caller is that org's Admin.
+    offboardEmployee: a
+      .mutation()
+      .arguments({ userId: a.id().required() })
+      .returns(a.customType({ userId: a.id().required() }))
       .handler(a.handler.function(employeeMembership))
       .authorization((allow) => [allow.authenticated()])
   })

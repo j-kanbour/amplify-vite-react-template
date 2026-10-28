@@ -1,16 +1,21 @@
 import { env } from '$amplify/env/profile-access';
 import { type Schema } from '../../../data/resource';
 import { getDb, getCaller, parsePath, runAction, isRead } from '../shared';
+import { uploadProblem, uploadRule } from '../../../data/upload-rules';
 
 /**
  * Gatekeeper for the TS_ProfileData bucket, which clients can't reach
  * directly:
  *   users/{userId}/...  the user themselves, or an admin of an org they're in
  *   orgs/{orgId}/...    members read, org admins write and delete
+ *
+ * Uploads are limited to the files upload-rules.ts allows (avatar, logo and
+ * onboarding documents), of an allowed type and size.
  */
 export const handler: Schema['profileFile']['functionHandler'] = async (event) => {
-  const { path, action } = event.arguments;
-  const [root, id, ...rest] = parsePath(path, action);
+  const { path, action, contentType, size } = event.arguments;
+  const segments = parsePath(path, action);
+  const [root, id, ...rest] = segments;
   // Whole-folder deletes or reads above an id aren't supported
   if (!id || (action !== 'list' && rest.length === 0)) throw new Error('Invalid path');
 
@@ -35,5 +40,15 @@ export const handler: Schema['profileFile']['functionHandler'] = async (event) =
   }
 
   if (!allowed) throw new Error('Forbidden');
-  return runAction(env.TS_PROFILE_DATA_BUCKET_NAME, path, action);
+
+  if (action === 'put') {
+    const rule = uploadRule(segments);
+    if (!rule) throw new Error("Files can't be uploaded there.");
+    const problem = uploadProblem(rule, contentType ?? '', size ?? 0);
+    if (problem) throw new Error(problem);
+    return runAction(env.TS_PROFILE_DATA_BUCKET_NAME, path, action, {
+      upload: { contentType: contentType!, size: size! },
+    });
+  }
+  return runAction(env.TS_PROFILE_DATA_BUCKET_NAME, path, action, { asAttachment: true });
 };

@@ -75,7 +75,9 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
   }
 
   let user = existing[0];
-  if (!user) {
+  // A record with no org belongs to someone offboarded from every org they
+  // were in: they get a new org of their own, keeping the record
+  if (!user?.orgId) {
     const { UserAttributes = [] } = await cognito.send(
       new AdminGetUserCommand({ UserPoolId: userPoolId, Username: username })
     );
@@ -96,16 +98,17 @@ export const handler: Schema['completeOnboarding']['functionHandler'] = async (e
     // The name they confirmed on the onboarding page. Only the DB copy is
     // kept: Cognito's `name` is mapped from Google and gets overwritten with
     // Google's value on every Google sign-in.
-    const { data: created, errors: userErrors } = await db.models.User.create({
+    const fields = {
       name,
-      email,
-      role: 'Admin',
-      profileOwner,
+      role: 'Admin' as const,
       orgId: org.id,
-      orgIds: [org.id],
+      orgIds: [...(user?.orgIds ?? []).filter((id): id is string => !!id), org.id],
       termsVersion: TERMS_VERSION,
       privacyVersion: PRIVACY_VERSION,
-    });
+    };
+    const { data: created, errors: userErrors } = user
+      ? await db.models.User.update({ id: user.id, ...fields })
+      : await db.models.User.create({ ...fields, email, profileOwner });
     if (userErrors || !created) {
       throw new Error(`Failed to create user: ${JSON.stringify(userErrors)}`);
     }

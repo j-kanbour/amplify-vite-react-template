@@ -78,27 +78,61 @@ export function parsePath(path: string, action: FileAction): string[] {
   return segments;
 }
 
-const s3 = new S3Client();
+// Otherwise the SDK puts the checksum of an empty body in presigned PUT URLs,
+// and S3 rejects the browser's upload as not matching it
+const s3 = new S3Client({ requestChecksumCalculation: 'WHEN_REQUIRED' });
+
+export interface ActionOptions {
+  /** put: the only type and size (bytes) the URL accepts. */
+  upload?: { contentType: string; size: number };
+  /**
+   * get: serve as a download, so opening the URL in a tab saves the file
+   * rather than rendering it (an uploaded HTML or SVG file can't run there).
+   * <img> and fetch() ignore this.
+   */
+  asAttachment?: boolean;
+}
 
 /**
  * Carries out an action the caller has already been authorised for. get and
  * put return a short-lived URL the browser uses directly; list and delete run
  * here.
  */
-export async function runAction(bucket: string, path: string, action: FileAction) {
+export async function runAction(bucket: string, path: string, action: FileAction, options: ActionOptions = {}) {
   switch (action) {
     case 'get':
       return {
-        url: await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: path }), {
-          expiresIn: URL_TTL_SECONDS,
-        }),
+        url: await getSignedUrl(
+          s3,
+          new GetObjectCommand({
+            Bucket: bucket,
+            Key: path,
+            ResponseContentDisposition: options.asAttachment ? 'attachment' : undefined,
+          }),
+          { expiresIn: URL_TTL_SECONDS }
+        ),
       };
-    case 'put':
+    case 'put': {
+      const { upload } = options;
       return {
-        url: await getSignedUrl(s3, new PutObjectCommand({ Bucket: bucket, Key: path }), {
-          expiresIn: URL_TTL_SECONDS,
-        }),
+        url: await getSignedUrl(
+          s3,
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: path,
+            ContentType: upload?.contentType,
+            ContentLength: upload?.size,
+          }),
+          {
+            expiresIn: URL_TTL_SECONDS,
+            // The presigner leaves content-type unsigned by default, which
+            // would let the browser send any type. Signed, S3 rejects a PUT
+            // whose type or length differs from what was checked.
+            signableHeaders: upload ? new Set(['content-type', 'content-length']) : undefined,
+          }
+        ),
       };
+    }
     case 'delete':
       await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: path }));
       return {};
