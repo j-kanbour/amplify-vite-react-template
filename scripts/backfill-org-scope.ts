@@ -7,7 +7,8 @@
  *   npx tsx scripts/backfill-org-scope.ts
  *
  * Run it after deploying the new schema, against the backend in
- * amplify_outputs.json, with AWS credentials for that account (the ones
+ * amplify_outputs.json (or the file AMPLIFY_OUTPUTS names, e.g. one from
+ * `npx ampx generate outputs --branch main`), with AWS credentials for that account (the ones
  * `ampx sandbox` uses, e.g. AWS_PROFILE). It calls the API with IAM, which
  * the data rules don't limit.
  *
@@ -24,7 +25,9 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import type { Schema } from '../amplify/data/resource';
 
 const dryRun = process.argv.includes('--dry-run');
-const outputs = JSON.parse(readFileSync(new URL('../amplify_outputs.json', import.meta.url), 'utf8'));
+const outputs = JSON.parse(
+  readFileSync(process.env.AMPLIFY_OUTPUTS ?? new URL('../amplify_outputs.json', import.meta.url), 'utf8')
+);
 const credentials = fromNodeProviderChain();
 
 Amplify.configure(outputs, {
