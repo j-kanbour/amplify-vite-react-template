@@ -1,10 +1,34 @@
 import { client } from './client';
+import { uploadProblem, uploadRule } from '../../amplify/data/upload-rules';
 
-/** Asks profileAccess for a presigned URL to get or put the file at path. */
-export async function presign(path: string, action: 'get' | 'put') {
-  const { data, errors } = await client.mutations.profileFile({ path, action });
+/** Asks profileAccess for a presigned URL to get the file at path, or put `file` there. */
+export async function presign(path: string, action: 'get' | 'put', file?: File) {
+  const { data, errors } = await client.mutations.profileFile({
+    path,
+    action,
+    contentType: file?.type,
+    size: file?.size,
+  });
   if (errors || !data?.url) throw new Error(errors?.[0]?.message ?? 'No URL returned');
   return data.url;
+}
+
+/**
+ * Uploads file to path. The Lambda checks it against upload-rules.ts too and
+ * the URL only takes this exact type and size; checking here first just gives
+ * the message without the round trip.
+ */
+export async function uploadFile(path: string, file: File) {
+  const rule = uploadRule(path.split('/'));
+  const problem = rule ? uploadProblem(rule, file.type, file.size) : "Files can't be uploaded there.";
+  if (problem) throw new Error(problem);
+
+  const res = await fetch(await presign(path, 'put', file), {
+    method: 'PUT',
+    body: file,
+    headers: { 'Content-Type': file.type },
+  });
+  if (!res.ok) throw new Error(`Upload failed (${res.status})`);
 }
 
 // Presigned URLs last 5 minutes; reuse them for a little less than that so a

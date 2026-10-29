@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Alert, Authenticator, Button, SelectField, CheckboxField, useAuthenticator } from '@aws-amplify/ui-react';
-import { signInWithRedirect, signUp, type SignUpInput } from 'aws-amplify/auth';
+import { confirmSignUp, signInWithRedirect, signUp, type ConfirmSignUpInput, type SignUpInput } from 'aws-amplify/auth';
 import type { OrgSize } from '../../amplify/data/org-sizes';
 import logo from '../assets/Tutor-Studio-logo.png';
+import { readPendingInvite } from '../utils/pendingInvite';
 
 /** Business size choices, one per Organisation.initialSize value. */
 export const ORG_SIZE_OPTIONS = [
@@ -25,6 +26,17 @@ export const signUpFormFields = {
     password: { label: 'Password', placeholder: 'Create a password', order: 3 },
     confirm_password: { label: 'Confirm password', placeholder: 'Re-enter your password', order: 4 },
     'custom:orgName': { label: 'Business name', placeholder: 'e.g. Tutor Studio', order: 5 },
+  },
+};
+
+/** Sign-up from an invite link: they're joining a business, not creating one. */
+export const inviteSignUpFormFields = {
+  signIn: signUpFormFields.signIn,
+  signUp: {
+    name: signUpFormFields.signUp.name,
+    email: signUpFormFields.signUp.email,
+    password: signUpFormFields.signUp.password,
+    confirm_password: signUpFormFields.signUp.confirm_password,
   },
 };
 
@@ -117,6 +129,21 @@ function SignInHeader() {
 }
 
 function SignUpHeader() {
+  const invite = readPendingInvite();
+  if (invite) {
+    return (
+      <div className="ts-auth-heading">
+        <h2 className="ts-auth-heading__title">
+          {invite.orgName ? `Join ${invite.orgName}` : 'Create your account'}
+        </h2>
+        <p className="ts-auth-heading__sub">
+          {invite.email
+            ? <>Sign up with <strong>{invite.email}</strong>, the address your invite was sent to.</>
+            : 'Sign up with the address your invite was sent to.'}
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="ts-auth-heading">
       <h2 className="ts-auth-heading__title">Create your account</h2>
@@ -126,19 +153,22 @@ function SignUpHeader() {
 }
 
 function SignUpFormFields() {
+  const fromInvite = readPendingInvite() !== null;
   return ( 
     <>  
       <Authenticator.SignUp.FormFields />
-      <SelectField
-        name="custom:orgSize"
-        label="Business Size"
-        defaultValue="Solo"
-        isRequired
-      >
-        {ORG_SIZE_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </SelectField>
+      {!fromInvite && (
+        <SelectField
+          name="custom:orgSize"
+          label="Business Size"
+          defaultValue="Solo"
+          isRequired
+        >
+          {ORG_SIZE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </SelectField>
+      )}
       <CheckboxField
         name="acknowledgement"
         value="yes"
@@ -188,6 +218,20 @@ export const authServices = {
       if (err instanceof Error) err.message = cleanTriggerError(err.message);
       throw err;
     }
+  },
+
+  // Tells the post-confirmation trigger not to create a business for someone
+  // joining one from an invite (the accept page does the joining)
+  async handleConfirmSignUp(input: ConfirmSignUpInput) {
+    const invite = readPendingInvite();
+    if (!invite) return confirmSignUp(input);
+    return confirmSignUp({
+      ...input,
+      options: {
+        ...input.options,
+        clientMetadata: { ...input.options?.clientMetadata, inviteToken: invite.token },
+      },
+    });
   },
 };
 

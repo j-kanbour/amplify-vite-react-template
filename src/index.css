@@ -542,6 +542,42 @@ a {
   border-radius: var(--ts-radius-md);
   color: #8f877d;
 }
+/* Org switcher: only for people in more than one org */
+.ts-header__org {
+  flex: 0 1 240px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  margin-left: auto;
+  padding: 0 10px 0 14px;
+  box-sizing: border-box;
+  background: var(--ts-card);
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-md);
+  color: var(--ts-ink-2);
+}
+.ts-header__org select {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ts-ink);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.ts-header__org:focus-within {
+  border-color: var(--ts-orange);
+}
+.ts-header__org + .ts-header__icon-btn {
+  margin-left: 0;
+}
 .ts-header__search-icon {
   flex: none;
   font-size: 1.05rem;
@@ -1262,9 +1298,18 @@ a {
   font-size: 0.85rem;
   transition: background-color 0.15s, color 0.15s;
 }
+button.ts-directory__action {
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
 .ts-directory__action:hover {
   background: var(--ts-orange-50);
   color: var(--ts-orange);
+}
+.ts-directory__action--danger:hover {
+  background: #fdeceb;
+  color: #b63a2b;
 }
 .ts-directory__pill {
   flex: none;
@@ -1463,11 +1508,133 @@ a {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+/* Document preview */
+.ts-dialog--wide {
+  width: min(900px, calc(100vw - 32px));
+}
+.ts-preview {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-md);
+  background: var(--ts-canvas);
+  overflow: hidden;
+}
+.ts-preview__img {
+  display: block;
+  max-width: 100%;
+  max-height: 70dvh;
+  object-fit: contain;
+}
+.ts-preview__frame {
+  width: 100%;
+  height: 70dvh;
+  border: 0;
+}
+.ts-dialog__actions a.amplify-button {
+  gap: 8px;
+  text-decoration: none;
+}
+
+/* Plain bullet list (resets the global ul/li styles) */
+.ts-dialog__list,
+.ts-dialog__list li,
+.ts-dialog__list li:hover {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.ts-dialog__list {
+  display: block;
+  padding-left: 20px;
+  list-style: disc;
+  color: var(--ts-ink-2);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.ts-dialog__list li {
+  padding: 2px 0;
+}
 .ts-dialog__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+}
+
+.ts-dialog__fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ts-dialog__fieldset legend {
+  padding: 0;
+}
+.ts-dialog__hint {
+  margin: 2px 0 8px;
+  color: var(--ts-ink-2);
+  font-size: 0.85rem;
+}
+.ts-dialog__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+/* ---------- Employee documents (onboarding upload + employee detail) ---------- */
+.ts-docs,
+.ts-docs .ts-docs__item,
+.ts-docs .ts-docs__item:hover {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  list-style: none;
+}
+.ts-docs {
+  display: flex;
+  flex-direction: column;
+}
+.ts-docs .ts-docs__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--ts-hairline);
+}
+.ts-docs__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ts-radius-pill);
+  background: var(--ts-orange-50);
+  color: var(--ts-orange-active);
+}
+.ts-docs__icon--done {
+  background: #e3f6f2;
+  color: #1d7d6c;
+}
+.ts-docs__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.ts-docs__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.ts-docs__status {
+  color: var(--ts-ink-2);
+  font-size: 0.85rem;
+}
+.ts-docs .amplify-button {
+  gap: 6px;
 }
 
 @media (max-width: 560px) {

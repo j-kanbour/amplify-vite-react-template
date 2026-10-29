@@ -1,10 +1,31 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { postConfirmation } from '../auth/post-confirmation/resource';
+import { preTokenGeneration } from '../auth/pre-token-generation/resource';
 import { completeOnboarding } from './complete-onboarding/resource';
 import { sendEmployeeInviteEmail } from '../functions/employees/invite/resource';
+import { employeeMembership } from '../functions/employees/membership/resource';
 import { profileAccess } from '../functions/fileAccess/profiles/resource';
 import { resourceAccess } from '../functions/fileAccess/resources/resource';
 import { ORG_SIZES } from './org-sizes';
+
+/**
+ * Org scoping. The pre-token-generation trigger puts the id of the org a user
+ * is an Admin of (their active one) in their token's groups, so a
+ * `groupDefinedIn('orgId')` rule gives admins that org's records and no
+ * other's. Lambdas call the API with IAM, which these rules don't limit.
+ *
+ * An update is checked against the record as stored, not the new values, so
+ * every orgId is set once on create and then locked: otherwise an admin could
+ * move a record into another org.
+ */
+const orgId = () =>
+  a
+    .id()
+    .required()
+    .authorization((allow) => [
+      allow.groupDefinedIn('orgId').to(['create', 'read']),
+      allow.authenticated().to(['read']),
+    ]);
 
 const schema = a
   .schema({
@@ -26,10 +47,13 @@ const schema = a
         resources: a.hasMany('Resource', 'orgId'),
         lessons: a.hasMany('Lesson', 'orgId'),
       })
+      // Created by the sign-up Lambdas; its own id is the org's group. An
+      // update can only clear a field (set it to null) with delete as well.
       .authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('id').to(['read', 'update', 'delete']),
       ]),
+    UserRole: a.enum(['Admin', 'Tutor', 'Parent']),
     //Users: including admins, tutors and parents
     User: a
       .model({
@@ -38,33 +62,56 @@ const schema = a
         phone: a.string(),
         termsVersion: a.string(),
         privacyVersion: a.string(),
-        role: a.enum(['Admin', 'Tutor', 'Parent']),
-        profileOwner: a.string(),
-        orgId: a.id(),
+        // Lambdas own the fields below. Trusting a user's own edits to them
+        // would let anyone make themselves an admin of any org.
+        role: a.ref('UserRole').authorization((allow) => [
+          allow.ownerDefinedIn('profileOwner').to(['read']),
+          allow.groupsDefinedIn('orgIds').to(['read']),
+        ]),
+        profileOwner: a.string().authorization((allow) => [
+          allow.ownerDefinedIn('profileOwner').to(['read']),
+          allow.groupsDefinedIn('orgIds').to(['read']),
+        ]),
+        // the active org: the one the app shows
+        orgId: a.id().authorization((allow) => [
+          allow.ownerDefinedIn('profileOwner').to(['read']),
+          allow.groupsDefinedIn('orgIds').to(['read']),
+        ]),
+        // every org the user belongs to (their Memberships'), so those orgs'
+        // admins can read the record
+        orgIds: a.id().array().authorization((allow) => [
+          allow.ownerDefinedIn('profileOwner').to(['read']),
+          allow.groupsDefinedIn('orgIds').to(['read']),
+        ]),
         org: a.belongsTo('Organisation', 'orgId'),
         memberships: a.hasMany('Membership', 'userId'),
         tutorAssignments: a.hasMany('TutorAssignment', 'tutorId'),
         guardianships: a.hasMany('Guardian', 'userId'),
         lessons: a.hasMany('LessonTutor', 'tutorId'),
       })
-      // lets a user (and the onboarding Lambda) look up their own record
-      .secondaryIndexes((index) => [index('profileOwner')])
+      // profileOwner: a user (and the onboarding Lambda) looks up their own record
+      // email: the invite Lambda checks whether the invitee is already a member
+      .secondaryIndexes((index) => [index('profileOwner'), index('email')])
+      // Created by the sign-up and invite Lambdas. Delete is what lets an
+      // update clear a field (set it to null).
       .authorization((allow) => [
-        allow.ownerDefinedIn('profileOwner'),
-        allow.group('Admin'),
+        allow.ownerDefinedIn('profileOwner').to(['read', 'update', 'delete']),
+        allow.groupsDefinedIn('orgIds').to(['read']),
       ]),
     //Membership: records the roles that Users have within Orgs
+    // Written only by Lambdas: the token's groups are worked out from these
     Membership: a
       .model({
         userId: a.id().required(),
         orgId: a.id().required(),
         role: a.enum(['admin', 'tutor', 'parent']),
+        // keys from employee-documents.ts this org asked for when inviting them
+        requiredDocuments: a.string().array(),
         user: a.belongsTo('User', 'userId'),
         org: a.belongsTo('Organisation', 'orgId'),
       })
       .authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
       ]),
     //Students
     Student: a
@@ -79,16 +126,25 @@ const schema = a
         // guardians). Whatever creates or removes a TutorAssignment must keep
         // this in step: it's what lets a tutor read only their own students.
         viewers: a.string().array(),
+        // the orgs the student is enrolled in (their Enrollments'). Whatever
+        // creates or removes an Enrollment must keep this in step. Locked, as
+        // admins could otherwise add any org to it.
+        orgIds: a.id().array().authorization((allow) => [
+          allow.groupsDefinedIn('orgIds').to(['read']),
+          allow.ownersDefinedIn('viewers').to(['read']),
+        ]),
       })
+      // Shared by every org the student is enrolled in, so no single org's
+      // admins can create or delete one: a Lambda will
       .authorization((allow) => [
         allow.ownersDefinedIn('viewers').to(['read']),
-        allow.group('Admin'),
+        allow.groupsDefinedIn('orgIds').to(['read', 'update']),
       ]),
     //Enrollment: records the Orgs that Students belong to
     Enrollment: a
       .model({
         studentId: a.id().required(),
-        orgId: a.id().required(),
+        orgId: orgId(),
         bundle: a.id(),
         student: a.belongsTo('Student', 'studentId'),
         org: a.belongsTo('Organisation', 'orgId'),
@@ -96,12 +152,12 @@ const schema = a
       })
       .authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('orgId'),
       ]),
     //Bundles: the payment bundles that students are enroled under
     Bundle: a
       .model({
-        orgId: a.id().required(),
+        orgId: orgId(),
         name: a.string(),
         description: a.string(),
         price: a.string(),
@@ -109,22 +165,25 @@ const schema = a
         discountTime: a.string()
       }).authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('orgId'),
       ]),
     //Tutor Assignment: records the Student/Enrolement that turors belong to
     TutorAssignment: a
       .model({
         enrollmentId: a.id().required(),
         tutorId: a.id().required(),
+        // the enrollment's org
+        orgId: orgId(),
         enrollment: a.belongsTo('Enrollment', 'enrollmentId'),
         tutor: a.belongsTo('User', 'tutorId'),
       })
       .authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('orgId'),
       ]),
     //Guardian: defins the student -> parent relation
-    // global: the family link holds regardless of which orgs the student joins
+    // global: the family link holds regardless of which orgs the student joins,
+    // so no single org's admins own it. Written by Lambdas.
     Guardian: a
       .model({
         studentId: a.id().required(),
@@ -134,14 +193,13 @@ const schema = a
       })
       .authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
       ]),
     //Resources: links to S3 storage, showing ownership and permission
     Resource: a
       .model({
         // values match the S3 folder names; path is derived, never stored
         type: a.enum(['admin', 'organisation', 'student', 'lesson']),
-        orgId: a.id().required(),
+        orgId: orgId(),
         studentId: a.id(), // required when type is 'student' — enforced in app/Lambda
         lessonId: a.id(),  // required when type is 'lesson'  — enforced in app/Lambda
         name: a.string(),
@@ -152,12 +210,12 @@ const schema = a
       })
       .authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('orgId'),
       ]),
     //Lessons: records all student lessons
     Lesson: a
       .model({
-        orgId: a.id().required(),
+        orgId: orgId(),
         org: a.belongsTo('Organisation', 'orgId'),
         startTime: a.datetime().required(),
         endTime: a.datetime().required(),
@@ -170,13 +228,15 @@ const schema = a
       })
       .authorization((allow) => [
         allow.authenticated().to(['read']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('orgId'),
       ]),
     //LessonStudent: shows the lessons held by students, includes confirmation and attendance
     LessonStudent: a
       .model({
         lessonId: a.id().required(),
         studentId: a.id().required(),
+        // the lesson's org
+        orgId: orgId(),
         lesson: a.belongsTo('Lesson', 'lessonId'),
         student: a.belongsTo('Student', 'studentId'),
         // profileOwner values of the student's guardians + the lesson's tutors,
@@ -192,13 +252,15 @@ const schema = a
       .authorization((allow) => [
         allow.authenticated().to(['read']),
         allow.ownersDefinedIn('owners').to(['read', 'update']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('orgId'),
       ]),
     //LessonTutor: shows the lessons held by tutors, includes confirmation and attendance
     LessonTutor: a
       .model({
         lessonId: a.id().required(),
         tutorId: a.id().required(),
+        // the lesson's org
+        orgId: orgId(),
         lesson: a.belongsTo('Lesson', 'lessonId'),
         tutor: a.belongsTo('User', 'tutorId'),
         // the tutor's own profileOwner
@@ -212,7 +274,33 @@ const schema = a
       .authorization((allow) => [
         allow.authenticated().to(['read']),
         allow.ownerDefinedIn('owner').to(['read', 'update']),
-        allow.group('Admin'),
+        allow.groupDefinedIn('orgId'),
+      ]),
+    //EmployeeInvite: an invite into an org, matched by the token in the emailed link
+    // Written by the invite Lambdas
+    EmployeeInvite: a
+      .model({
+        email: a.string().required(), // lowercased
+        name: a.string(),
+        phone: a.string(),
+        role: a.enum(['Admin', 'Tutor']),
+        startDate: a.date(),
+        // keys from employee-documents.ts, copied to the Membership on accept
+        requiredDocuments: a.string().array(),
+        orgId: a.id(),
+        orgName: a.string().required(),
+        // sha256 of the token in the link; the token itself is never stored
+        inviteTokenHash: a.string(),
+        status: a.enum(['pending', 'accepted', 'revoked', 'failed']),
+        invitedBy: a.id(),
+        expiresAt: a.datetime(),
+        messageId: a.string(),
+        acceptedAt: a.datetime(),
+        acceptedBy: a.id(),
+      })
+      .secondaryIndexes((index) => [index('inviteTokenHash'), index('email')])
+      .authorization((allow) => [
+        allow.groupDefinedIn('orgId').to(['read']),
       ]),
     //Onboarding: finishes sign-up for Google users (creates their org + User)
     OnboardingResult: a.customType({
@@ -239,7 +327,14 @@ const schema = a
     }),
     profileFile: a
       .mutation()
-      .arguments({ path: a.string().required(), action: a.ref('FileAction').required() })
+      .arguments({
+        path: a.string().required(),
+        action: a.ref('FileAction').required(),
+        // put only: the file's type and size in bytes, checked against
+        // upload-rules.ts and bound into the URL
+        contentType: a.string(),
+        size: a.integer(),
+      })
       .returns(a.ref('FileAccessResult'))
       .handler(a.handler.function(profileAccess))
       .authorization((allow) => [allow.authenticated()]),
@@ -249,22 +344,86 @@ const schema = a
       .returns(a.ref('FileAccessResult'))
       .handler(a.handler.function(resourceAccess))
       .authorization((allow) => [allow.authenticated()]),
+    //Employee invites. The org comes from the caller's own record, never the
+    // arguments, and the Lambda checks they're an Admin of it.
     sendEmployeeInviteEmail: a
       .mutation()
       .arguments({
-        to: a.string().required(),
-        subject: a.string().required(),
-        text: a.string(),
-        orgName: a.string().required(),
+        email: a.string().required(),
+        name: a.string().required(),
+        role: a.string().required(), // 'Admin' | 'Tutor'
+        phone: a.string(),
+        startDate: a.date(),
+        message: a.string(),
+        // keys from employee-documents.ts they must upload when joining
+        requiredDocuments: a.string().array(),
+        // public URL of the org's logo, shown at the top of the email
+        logoUrl: a.string(),
       })
-      .returns(a.customType({ messageId: a.string() }))
+      .returns(a.customType({ inviteId: a.id(), messageId: a.string() }))
       .handler(a.handler.function(sendEmployeeInviteEmail))
+      .authorization((allow) => [allow.authenticated()]),
+    // What the invite link's landing page may show. Callable before sign-in, so
+    // it returns only this, never the invite record.
+    EmployeeInvitePreview: a.customType({
+      // 'valid' | 'expired' | 'accepted' | 'revoked' | 'invalid'
+      status: a.string().required(),
+      orgName: a.string(),
+      role: a.string(),
+      email: a.string(),
+      name: a.string(),
+    }),
+    previewEmployeeInvite: a
+      .query()
+      .arguments({ token: a.string().required() })
+      .returns(a.ref('EmployeeInvitePreview'))
+      .handler(a.handler.function(employeeMembership))
+      .authorization((allow) => [allow.guest(), allow.authenticated()]),
+    // Joins the signed-in user to the invite's org; their email must match it
+    acceptEmployeeInvite: a
+      .mutation()
+      .arguments({
+        token: a.string().required(),
+        // required when the user has no User record yet
+        acceptedTerms: a.boolean(),
+      })
+      .returns(a.customType({ orgId: a.id().required() }))
+      .handler(a.handler.function(employeeMembership))
+      .authorization((allow) => [allow.authenticated()]),
+    // Sets which of the caller's orgs the app shows (User.orgId)
+    switchOrg: a
+      .mutation()
+      .arguments({ orgId: a.id().required() })
+      .returns(a.customType({ orgId: a.id().required() }))
+      .handler(a.handler.function(employeeMembership))
+      .authorization((allow) => [allow.authenticated()]),
+    // Makes an employee of the caller's active org an Admin or Tutor of it.
+    // The Lambda checks the caller is that org's Admin.
+    changeEmployeeRole: a
+      .mutation()
+      .arguments({
+        userId: a.id().required(),
+        role: a.string().required(), // 'Admin' | 'Tutor'
+      })
+      .returns(a.customType({ userId: a.id().required(), role: a.string().required() }))
+      .handler(a.handler.function(employeeMembership))
+      .authorization((allow) => [allow.authenticated()]),
+    // Removes an employee from the caller's active org: their Membership,
+    // tutor assignments and pending invites there. Their account and any
+    // other orgs are kept. The Lambda checks the caller is that org's Admin.
+    offboardEmployee: a
+      .mutation()
+      .arguments({ userId: a.id().required() })
+      .returns(a.customType({ userId: a.id().required() }))
+      .handler(a.handler.function(employeeMembership))
       .authorization((allow) => [allow.authenticated()])
   })
   .authorization((allow) => [
     allow.resource(postConfirmation),
+    allow.resource(preTokenGeneration).to(['query']),
     allow.resource(completeOnboarding),
-    allow.resource(sendEmployeeInviteEmail).to(['query']),
+    allow.resource(sendEmployeeInviteEmail).to(['query', 'mutate']),
+    allow.resource(employeeMembership).to(['query', 'mutate']),
     allow.resource(profileAccess).to(['query']),
     allow.resource(resourceAccess).to(['query']),
   ]);

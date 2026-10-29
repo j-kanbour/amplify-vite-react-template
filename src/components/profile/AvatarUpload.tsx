@@ -1,7 +1,8 @@
 import { useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { Button } from '@aws-amplify/ui-react';
 import { LuCamera } from 'react-icons/lu';
-import { photoChanged, presign } from '../../data/profileFile';
+import { photoChanged, uploadFile } from '../../data/profileFile';
+import { IMAGE_TYPES } from '../../../amplify/data/upload-rules';
 import { useProfilePhoto } from '../../data/useProfilePhoto';
 import { initials } from '../../utils/initials';
 
@@ -32,12 +33,7 @@ export default function AvatarUpload({ path, name, shape = 'round', buttonLabel,
     setUploading(true);
     setError(undefined);
     try {
-      const res = await fetch(await presign(path, 'put'), {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
-      if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+      await uploadFile(path, file);
       photoChanged(path);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
@@ -67,7 +63,7 @@ export default function AvatarUpload({ path, name, shape = 'round', buttonLabel,
           <LuCamera aria-hidden /> {buttonLabel}
         </Button>
         {error && <p className="ts-profile__meta" role="alert">{error}</p>}
-        <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={handleFile} />
+        <input ref={inputRef} type="file" accept={IMAGE_TYPES.join(',')} hidden onChange={handleFile} />
       </div>
     </div>
   );

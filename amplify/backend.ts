@@ -8,7 +8,9 @@ import { storageProfileData, storageOrgResources } from './storage/resource';
 import { profileAccess } from './functions/fileAccess/profiles/resource';
 import { resourceAccess } from './functions/fileAccess/resources/resource';
 import { sendEmployeeInviteEmail } from './functions/employees/invite/resource';
+import { employeeMembership } from './functions/employees/membership/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
+import { preTokenGeneration } from './auth/pre-token-generation/resource';
 import { completeOnboarding } from './data/complete-onboarding/resource';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { Stack } from 'aws-cdk-lib';
@@ -26,8 +28,10 @@ const backend = defineBackend({
   profileAccess,
   resourceAccess,
   postConfirmation,
+  preTokenGeneration,
   completeOnboarding,
-  sendEmployeeInviteEmail
+  sendEmployeeInviteEmail,
+  employeeMembership,
 });
 
 // Give the Lambdas readable names in the console instead of the generated
@@ -38,10 +42,12 @@ const functions = {
   'my-function': backend.myFunction,
   'pre-signup': backend.preSignUp,
   'post-confirmation': backend.postConfirmation,
+  'pre-token-generation': backend.preTokenGeneration,
   'complete-onboarding': backend.completeOnboarding,
   'profile-access': backend.profileAccess,
   'resource-access': backend.resourceAccess,
   'send-employee-invite-email': backend.sendEmployeeInviteEmail,
+  'employee-membership': backend.employeeMembership,
 };
 for (const [name, fn] of Object.entries(functions)) {
   const cfnFunction = fn.resources.lambda.node.defaultChild as CfnFunction;
@@ -49,11 +55,33 @@ for (const [name, fn] of Object.entries(functions)) {
   cfnFunction.functionName = `amplify-template-${envName}-${name}`.slice(0, 64);
 }
 
+// The invite Lambda sends through SES, which defineFunction grants nothing for.
+// identity/* rather than just the sender: while the account is in the SES
+// sandbox, the (verified) recipient's identity is checked too.
+backend.sendEmployeeInviteEmail.resources.lambda.addToRolePolicy(
+  new PolicyStatement({
+    actions: ['ses:SendEmail'],
+    resources: [`arn:aws:ses:${backend.stack.region}:${backend.stack.account}:identity/*`],
+  })
+);
+
 // The pre-signup trigger links Google sign-ins to email accounts, which
 // Amplify's auth `access` grants don't cover. A standalone Policy rather than
 // addToRolePolicy: the function would depend on its default policy, the
 // policy on the user pool, and the pool on the function (its trigger).
-const { userPool } = backend.auth.resources;
+const { userPool, cfnResources } = backend.auth.resources;
+
+// A token's groups say which org its holder is an Admin of (see
+// amplify/auth/pre-token-generation/handler.ts) and are only worked out when
+// a token is issued. Short-lived tokens mean a role change or removal takes
+// effect within 15 minutes; Amplify refreshes them without signing out.
+cfnResources.cfnUserPoolClient.accessTokenValidity = 15;
+cfnResources.cfnUserPoolClient.idTokenValidity = 15;
+cfnResources.cfnUserPoolClient.tokenValidityUnits = {
+  accessToken: 'minutes',
+  idToken: 'minutes',
+  refreshToken: 'days',
+};
 new Policy(userPool.stack, 'PreSignUpLinkProviderPolicy', {
   statements: [
     new PolicyStatement({

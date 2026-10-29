@@ -46,6 +46,13 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
     return event;
   }
 
+  // Signed up from an invite link (src/components/SignUpForm.tsx sends the
+  // token): they join the inviting org on the accept page instead of getting
+  // an org of their own. Only skips work, so a forged value grants nothing.
+  if (event.request.clientMetadata?.inviteToken) {
+    return event;
+  }
+
   const db = await getDb();
 
   await cognito.send(
@@ -68,17 +75,28 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
   }
 
   // 2. Create the user linked to it
-  const { errors: userErrors } = await db.models.User.create({
+  const { data: user, errors: userErrors } = await db.models.User.create({
     name: attrs.name,
     email: attrs.email,
     role: 'Admin',
     profileOwner: `${attrs.sub}::${event.userName}`,
     orgId: org.id,
+    orgIds: [org.id],
     termsVersion: attrs['custom:termsVersion'] ?? null,
     privacyVersion: attrs['custom:privacyVersion'] ?? null,
   });
-  if (userErrors) {
+  if (userErrors || !user) {
     throw new Error(`Failed to create user: ${JSON.stringify(userErrors)}`);
+  }
+
+  // 3. Record them as the org's admin
+  const { errors: membershipErrors } = await db.models.Membership.create({
+    userId: user.id,
+    orgId: org.id,
+    role: 'admin',
+  });
+  if (membershipErrors) {
+    throw new Error(`Failed to create membership: ${JSON.stringify(membershipErrors)}`);
   }
 
   return event;

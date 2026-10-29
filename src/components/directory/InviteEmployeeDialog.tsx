@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Alert, Button, SelectField, TextAreaField, TextField } from '@aws-amplify/ui-react';
+import { Alert, Button, CheckboxField, SelectField, TextAreaField, TextField } from '@aws-amplify/ui-react';
 import { LuX } from 'react-icons/lu';
 import { validateEmail, validatePhone } from '../../utils/validation';
 import { client } from '../../data/client';
-import { useUser } from '../../context/UserContext';
+import { EMPLOYEE_DOCUMENTS } from '../../../amplify/data/employee-documents';
 
 const ROLES = ['Admin', 'Tutor'] as const;
 
@@ -19,10 +19,11 @@ type Props = {
 export default function InviteEmployeeDialog({ open, onClose }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const [values, setValues] = useState<Values>(EMPTY);
+  // keys from EMPLOYEE_DOCUMENTS they'll be asked to upload when joining
+  const [documents, setDocuments] = useState<string[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof Values, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const { org } = useUser();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -38,6 +39,7 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
   // directly), so clear the form and sync `open` from there
   function handleClose() {
     setValues(EMPTY);
+    setDocuments([]);
     setErrors({});
     setSendError(null);
     onClose();
@@ -50,6 +52,9 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
     errorMessage: errors[name],
     onChange: (e: { target: { value: string } }) => setValues((v) => ({ ...v, [name]: e.target.value })),
   });
+
+  const toggleDocument = (key: string, checked: boolean) =>
+    setDocuments((d) => (checked ? [...d, key] : d.filter((k) => k !== key)));
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -68,11 +73,15 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
     setSendError(null);
     setSubmitting(true);
     try {
+      // The org is the sender's own; the Lambda works it out and checks they're its Admin
       const { errors: sendErrors } = await client.mutations.sendEmployeeInviteEmail({
-        to: v.email,
-        subject: `You've been invited to join ${org?.name ?? 'Tutor Studio'}`,
-        text: v.message || undefined,
-        orgName: org?.name ?? '',
+        email: v.email,
+        name: v.name,
+        role: v.role,
+        phone: v.phone || undefined,
+        startDate: v.startDate || undefined,
+        message: v.message || undefined,
+        requiredDocuments: documents,
       });
       if (sendErrors?.length) throw new Error(sendErrors[0].message);
       onClose();
@@ -116,6 +125,22 @@ export default function InviteEmployeeDialog({ open, onClose }: Props) {
           </SelectField>
           <TextField label="Start date" type="date" isRequired {...field('startDate')} />
         </div>
+        <fieldset className="ts-dialog__fieldset">
+          <legend className="amplify-label">Documents to upload</legend>
+          <p className="ts-dialog__hint">They’ll be asked for these when they join.</p>
+          <div className="ts-dialog__checks">
+            {EMPLOYEE_DOCUMENTS.map((d) => (
+              <CheckboxField
+                key={d.key}
+                name="requiredDocuments"
+                value={d.key}
+                label={d.label}
+                checked={documents.includes(d.key)}
+                onChange={(e) => toggleDocument(d.key, e.target.checked)}
+              />
+            ))}
+          </div>
+        </fieldset>
         <TextAreaField
           label="Message"
           descriptiveText="Optional. Included in the invite email."
