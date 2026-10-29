@@ -24,6 +24,7 @@ export default function AcceptInvite() {
   const { user, refresh } = useUser();
   const [preview, setPreview] = useState<Preview | null>(null);
   const [email, setEmail] = useState('');
+  const [emailVerified, setEmailVerified] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,7 @@ export default function AcceptInvite() {
       if (errors?.length || !data) throw new Error(errors?.[0]?.message ?? 'Could not load this invite.');
       if (cancelled) return;
       setEmail(attrs.email ?? '');
+      setEmailVerified(attrs.email_verified === 'true');
       setPreview(data);
     })().catch((err) => {
       if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load this invite.');
@@ -98,6 +100,9 @@ export default function AcceptInvite() {
   }
 
   const wrongAccount = !!email && !!preview.email && email.toLowerCase() !== preview.email.toLowerCase();
+  // Accepting needs a verified address. Google sign-ins pick up the verified
+  // flag when they sign in, so an older session can still have it unset.
+  const unverified = !wrongAccount && !emailVerified;
   // No User record yet: a new account, so this is where they accept the terms
   const isNewAccount = !user;
 
@@ -110,10 +115,16 @@ export default function AcceptInvite() {
         Signed in as <strong>{email}</strong>
       </p>
 
-      {wrongAccount ? (
+      {wrongAccount || unverified ? (
         <>
           <Alert variation="warning">
-            This invite was sent to <strong>{preview.email}</strong>. Sign in with that address to accept it.
+            {wrongAccount ? (
+              <>
+                This invite was sent to <strong>{preview.email}</strong>. Sign in with that address to accept it.
+              </>
+            ) : (
+              <>Your email address hasn’t been verified yet. Sign out and sign back in to accept this invite.</>
+            )}
           </Alert>
           {/* The pending invite is kept, so it's picked up again after signing back in */}
           <Button variation="primary" onClick={signOut}>
