@@ -97,8 +97,11 @@ async function acceptEmployeeInvite(
   );
   const attr = (name: string) => UserAttributes.find((a) => a.Name === name)?.Value;
   const email = normaliseEmail(attr('email') ?? '');
-  if (attr('email_verified') !== 'true' || email !== normaliseEmail(invite.email)) {
+  if (email !== normaliseEmail(invite.email)) {
     throw new Error(`This invite was sent to ${invite.email}. Sign in with that email address to accept it.`);
+  }
+  if (attr('email_verified') !== 'true') {
+    throw new Error("Your email address hasn't been verified yet. Sign out and sign back in to accept this invite.");
   }
 
   const { data: existing } = await db.models.User.listUserByProfileOwner({
