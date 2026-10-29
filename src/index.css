@@ -649,7 +649,8 @@ a {
 .ts-sidenav__org--button[aria-expanded='true'] {
   background: var(--ts-orange-50);
 }
-.ts-sidenav__menu--down {
+/* Two classes so it beats the base menu's bottom anchor, declared further down */
+.ts-sidenav__menu.ts-sidenav__menu--down {
   top: calc(100% + 8px);
   bottom: auto;
 }
