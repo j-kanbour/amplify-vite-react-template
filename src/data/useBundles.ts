@@ -77,7 +77,7 @@ export function useBundles(orgId?: string | null) {
 
   const setBundles = useCallback(
     (change: (bundles: Bundle[]) => Bundle[]) =>
-      setLoaded((l) => (l?.orgId === orgId && l.bundles ? { ...l, bundles: change(l.bundles) } : l)),
+      setLoaded((l) => (l && orgId && l.orgId === orgId && l.bundles ? { ...l, bundles: change(l.bundles) } : l)),
     [orgId],
   );
 
