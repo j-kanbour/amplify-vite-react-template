@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useMatch, useSearchParams } from 'react-router-dom';
-import { Authenticator } from '@aws-amplify/ui-react';
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import { UserProvider, useUser } from './context/UserContext';
 import RequirePermission from './components/RequirePermission';
+import LoadingScreen from './components/LoadingScreen';
 import Header from './components/Headder';
 import SideNav from './components/SideNav';
 import { signUpFormFields, inviteSignUpFormFields, signUpComponents, authServices } from './components/SignUpForm';
@@ -41,7 +42,7 @@ function OnboardingGate() {
   const onDocuments = useMatch('/onboarding/documents') !== null;
   const onNoOrg = useMatch('/no-organisation') !== null;
   const noOrg = !!user && !user.orgId;
-  if (loading) return <p>Loading…</p>;
+  if (loading) return <LoadingScreen />;
   if (onAcceptInvite) return <Outlet />;
   if (readPendingInvite()) return <Navigate to="/join/accept" replace />;
   if (noOrg) {
@@ -73,9 +74,20 @@ function AppLayout() {
 
 /** Everything that requires a signed-in user. */
 function AuthedApp() {
+  return (
+    <Authenticator.Provider>
+      <AuthedRoutes />
+    </Authenticator.Provider>
+  );
+}
+
+function AuthedRoutes() {
   // Set by the invite landing page's "Create an account" / "I already have an account"
   const [params] = useSearchParams();
   const fromInvite = readPendingInvite() !== null;
+  // The Authenticator renders nothing while it checks for an existing session
+  const { authStatus } = useAuthenticator((ctx) => [ctx.authStatus]);
+  if (authStatus === 'configuring') return <LoadingScreen />;
 
   return (
     <Authenticator

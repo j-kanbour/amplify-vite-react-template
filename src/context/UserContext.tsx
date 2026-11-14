@@ -77,13 +77,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const { data } = await client.models.User.listUserByProfileOwner({ profileOwner });
     const me = data[0] ?? null;
     setUser(me);
-    const { data: orgData } = me?.orgId
-      ? await client.models.Organisation.get({ id: me.orgId })
-      : { data: null };
+    // Independent of each other, so fetch together rather than one after the other
+    const [{ data: orgData }, { data: rows }] = await Promise.all([
+      me?.orgId ? client.models.Organisation.get({ id: me.orgId }) : Promise.resolve({ data: null }),
+      me ? me.memberships() : Promise.resolve({ data: [] }),
+    ]);
     setOrg(orgData ?? null);
     setSubscription(orgData?.subscription ?? 'free');
 
-    const { data: rows } = me ? await me.memberships() : { data: [] };
     const named = await Promise.all(
       rows.map(async (m) => {
         const { data: o } = m.orgId === orgData?.id ? { data: orgData } : await m.org();

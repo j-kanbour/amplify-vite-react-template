@@ -11,9 +11,59 @@
       rel="stylesheet"
     />
     <title>Tutor Studio</title>
+    <style>
+      /* Loading screen. Lives here so it paints before the JS bundle arrives;
+         src/components/LoadingScreen.tsx renders the same markup. */
+      .ts-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        background: #fbf6ec;
+        z-index: 1000;
+      }
+      .ts-splash__mark {
+        width: 96px;
+        height: 96px;
+        animation: ts-splash-float 1.8s ease-in-out infinite;
+        filter: drop-shadow(0 10px 14px rgba(92, 83, 73, 0.16));
+      }
+      .ts-splash__dots {
+        display: flex;
+        gap: 10px;
+      }
+      .ts-splash__dots span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: ts-splash-bounce 1.2s ease-in-out infinite;
+      }
+      .ts-splash__dots span:nth-child(1) { background: #f26b21; }
+      .ts-splash__dots span:nth-child(2) { background: #2480e6; animation-delay: 0.15s; }
+      .ts-splash__dots span:nth-child(3) { background: #2ebfa5; animation-delay: 0.3s; }
+      @keyframes ts-splash-float {
+        0%, 100% { transform: translateY(0) rotate(-2deg); }
+        50% { transform: translateY(-10px) rotate(2deg); }
+      }
+      @keyframes ts-splash-bounce {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+        30% { transform: translateY(-8px); opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ts-splash__mark, .ts-splash__dots span { animation: none; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="ts-splash" role="status" aria-label="Loading">
+        <img class="ts-splash__mark" src="/src/assets/Tutor-Studio-mark.png" alt="" />
+        <div class="ts-splash__dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
