@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Students from './pages/Students';
+import Bundles from './pages/Bundles';
 import Onboarding from './pages/Onboarding';
 import Privacy from './pages/Privacy';
 import TermsAndConditions from './pages/TermsAndConditions';
@@ -110,6 +111,9 @@ function AuthedRoutes() {
               <Route path="/profile" element={<UserProfile />} />
               <Route element={<RequirePermission permission="students.view" />}>
                 <Route path="/students" element={<Students />} />
+              </Route>
+              <Route element={<RequirePermission permission="bundles.view" />}>
+                <Route path="/bundles" element={<Bundles />} />
               </Route>
               <Route element={<RequirePermission permission="users.list" />}>
                 <Route path="/employees" element={<Employees />} />

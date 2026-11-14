@@ -154,16 +154,27 @@ const schema = a
         allow.authenticated().to(['read']),
         allow.groupDefinedIn('orgId'),
       ]),
-    //Bundles: the payment bundles that students are enroled under
+    //Bundles: the pricing options students are enrolled under. Admins of the
+    // org edit them; tutors (anyone signed in) read them (Bundles page).
     Bundle: a
       .model({
         orgId: orgId(),
         name: a.string(),
         description: a.string(),
+        // as typed; the app shows it as currency when it's a plain number
         price: a.string(),
+        // 'per session', 'per term', ... (PRICE_UNITS in src/data/useBundles.ts)
+        priceUnit: a.string(),
+        sessions: a.integer(),
+        // "what's included" lines
+        features: a.string().array(),
         discount: a.string(),
-        discountTime: a.string()
-      }).authorization((allow) => [
+        discountTime: a.string(),
+        // shown first and marked "Most popular"
+        featured: a.boolean(),
+      })
+      .secondaryIndexes((index) => [index('orgId').queryField('listBundlesByOrg')])
+      .authorization((allow) => [
         allow.authenticated().to(['read']),
         allow.groupDefinedIn('orgId'),
       ]),

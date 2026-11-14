@@ -19,6 +19,9 @@ export const permissions = {
   // Tutors see only the students assigned to them
   'students.viewAll': ['Admin'],
   'students.add':   ['Admin'],
+  // Pricing bundles: tutors present them, admins set them
+  'bundles.view':   ['Admin', 'Tutor'],
+  'bundles.edit':   ['Admin'],
   'child.view':     ['Parent'],
 } as const satisfies Record<string, readonly Group[]>;
 

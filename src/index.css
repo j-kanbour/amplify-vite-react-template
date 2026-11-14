@@ -1758,3 +1758,336 @@ button.ts-directory__action {
 .ts-tasks__form .amplify-button {
   gap: 6px;
 }
+
+/* Bundles page: the org's pricing options */
+.ts-bundles {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ts-bundles .amplify-button {
+  gap: 8px;
+}
+.ts-bundles__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ts-bundles__intro {
+  margin: 0;
+  color: var(--ts-ink-2);
+  font-size: 0.95rem;
+  max-width: 60ch;
+}
+.ts-bundles__buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ts-bundles__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.ts-bundles .ts-directory__empty {
+  gap: 12px;
+}
+
+/* One bundle, shared by the page, presentation and print */
+.ts-bundle {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  background: var(--ts-card);
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-lg);
+  box-shadow: var(--ts-shadow-sm);
+}
+.ts-bundle--featured {
+  border-color: var(--ts-orange);
+  box-shadow: 0 0 0 1px var(--ts-orange), var(--ts-shadow-sm);
+}
+.ts-bundle__ribbon {
+  position: absolute;
+  top: -12px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--ts-radius-pill);
+  background: var(--ts-orange);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.ts-bundle__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ts-bundle__name {
+  margin: 0;
+  font-family: var(--ts-font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  overflow-wrap: anywhere;
+}
+.ts-bundle__desc {
+  margin: 0;
+  color: var(--ts-ink-2);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.ts-bundle__price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ts-bundle__amount {
+  font-family: var(--ts-font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ts-ink);
+}
+.ts-bundle__unit {
+  color: var(--ts-ink-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.ts-bundle__meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ts-bundle__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--ts-radius-pill);
+  background: var(--ts-sunken);
+  color: var(--ts-ink-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.ts-bundle__chip--offer {
+  background: #e3f6f2;
+  color: #1d7d6c;
+}
+.ts-bundle__features,
+.ts-bundle__features li,
+.ts-bundle__features li:hover {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  list-style: none;
+}
+.ts-bundle__features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ts-hairline);
+  font-size: 0.9rem;
+}
+.ts-bundle__features li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  overflow-wrap: anywhere;
+}
+.ts-bundle__features svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--ts-teal);
+}
+.ts-bundle__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+/* The presentation's larger cards */
+.ts-bundle--lg {
+  gap: 18px;
+  padding: 30px;
+  border-radius: var(--ts-radius-xl);
+}
+.ts-bundle--lg .ts-bundle__name {
+  font-size: 1.45rem;
+}
+.ts-bundle--lg .ts-bundle__desc,
+.ts-bundle--lg .ts-bundle__features {
+  font-size: 1rem;
+}
+.ts-bundle--lg .ts-bundle__amount {
+  font-size: 2.75rem;
+}
+
+/* Presentation mode: a full-screen showcase that is also the printed sheet */
+.ts-present {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  overflow: auto;
+  background: var(--ts-canvas);
+  color: var(--ts-ink);
+  font-family: var(--ts-font-body);
+  text-align: left;
+}
+.ts-present__bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(251, 246, 236, 0.9);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--ts-hairline);
+}
+.ts-present__bar .amplify-button {
+  gap: 8px;
+}
+.ts-present__hint {
+  margin-right: auto;
+  color: var(--ts-ink-2);
+  font-size: 0.85rem;
+}
+.ts-present__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 32px 56px;
+  box-sizing: border-box;
+}
+.ts-present__head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.ts-present__logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--ts-radius-lg);
+  background: var(--ts-orange-50);
+  color: var(--ts-orange-active);
+  font-family: var(--ts-font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  overflow: hidden;
+}
+.ts-present__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ts-present__org {
+  margin: 0 0 2px;
+  color: var(--ts-ink-2);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.ts-present__title {
+  margin: 0;
+  font-family: var(--ts-font-display);
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1.1;
+}
+.ts-present__contact {
+  margin: 6px 0 0;
+  color: var(--ts-ink-2);
+  font-size: 0.95rem;
+}
+.ts-present__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+.ts-present__grid[data-count='1'] {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+.ts-present__grid[data-count='2'] {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.ts-present__foot {
+  color: var(--ts-ink-2);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  body.ts-presenting {
+    display: block;
+    height: auto;
+    width: auto;
+    background: #fff;
+  }
+  body.ts-presenting .ts-app {
+    display: none;
+  }
+  .ts-present {
+    position: static;
+    overflow: visible;
+    background: #fff;
+  }
+  .ts-present__bar {
+    display: none;
+  }
+  .ts-present__sheet {
+    gap: 24px;
+    max-width: none;
+    padding: 0;
+  }
+  .ts-present__title {
+    font-size: 1.8rem;
+  }
+  .ts-present__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .ts-present__grid[data-count='1'] {
+    grid-template-columns: 1fr;
+  }
+  .ts-bundle {
+    break-inside: avoid;
+    box-shadow: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .ts-bundle--lg {
+    padding: 22px;
+  }
+  .ts-bundle--lg .ts-bundle__amount {
+    font-size: 2.25rem;
+  }
+}
