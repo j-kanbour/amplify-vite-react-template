@@ -38,3 +38,22 @@ export async function requireAdminOrg(db: Db, profileOwner: string, deniedMessag
   if (!org) throw new Error("Organisation not found.");
   return { me, org };
 }
+
+/**
+ * The caller's active org, provided they work there (Admin or Tutor). What
+ * the parent and student flows check, since tutors run those too.
+ */
+export async function requireStaffOrg(db: Db, profileOwner: string, deniedMessage: string) {
+  const { data: users } = await db.models.User.listUserByProfileOwner({ profileOwner });
+  const me = users[0];
+  if (!me?.orgId) throw new Error("You're not part of an organisation.");
+
+  const { data: memberships } = await me.memberships();
+  const membership = memberships.find((m) => m.orgId === me.orgId);
+  const role = membership ? membership.role : me.role?.toLowerCase();
+  if (role !== "admin" && role !== "tutor") throw new Error(deniedMessage);
+
+  const { data: org } = await db.models.Organisation.get({ id: me.orgId });
+  if (!org) throw new Error("Organisation not found.");
+  return { me, org, role };
+}

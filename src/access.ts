@@ -22,6 +22,11 @@ export const permissions = {
   // Pricing bundles: tutors present them, admins set them
   'bundles.view':   ['Admin', 'Tutor'],
   'bundles.edit':   ['Admin'],
+  // Families: tutors and admins both add and see them
+  'parents.view':   ['Admin', 'Tutor'],
+  'parents.add':    ['Admin', 'Tutor'],
+  'parents.edit':   ['Admin', 'Tutor'],
+  'parents.delete': ['Admin', 'Tutor'],
   'child.view':     ['Parent'],
 } as const satisfies Record<string, readonly Group[]>;
 

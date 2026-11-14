@@ -2091,3 +2091,27 @@ button.ts-directory__action {
     font-size: 2.25rem;
   }
 }
+
+/* Detail column with room for a notice above the detail panels (Parents page) */
+.ts-directory__detail-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+/* A group of fields inside a dialog, e.g. the second parent */
+.ts-dialog__fieldset--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-md);
+  background: var(--ts-canvas);
+}
+.ts-dialog__fieldset--stack .ts-dialog__head {
+  align-items: center;
+}
+.ts-dialog__fieldset--stack .ts-dialog__hint {
+  margin: -12px 0 0;
+}

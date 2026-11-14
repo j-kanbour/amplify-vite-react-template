@@ -9,6 +9,7 @@ import { profileAccess } from './functions/fileAccess/profiles/resource';
 import { resourceAccess } from './functions/fileAccess/resources/resource';
 import { sendEmployeeInviteEmail } from './functions/employees/invite/resource';
 import { employeeMembership } from './functions/employees/membership/resource';
+import { manageParents } from './functions/parents/manage/resource';
 import { postConfirmation } from './auth/post-confirmation/resource';
 import { preTokenGeneration } from './auth/pre-token-generation/resource';
 import { completeOnboarding } from './data/complete-onboarding/resource';
@@ -32,6 +33,7 @@ const backend = defineBackend({
   completeOnboarding,
   sendEmployeeInviteEmail,
   employeeMembership,
+  manageParents,
 });
 
 // Give the Lambdas readable names in the console instead of the generated
@@ -48,6 +50,7 @@ const functions = {
   'resource-access': backend.resourceAccess,
   'send-employee-invite-email': backend.sendEmployeeInviteEmail,
   'employee-membership': backend.employeeMembership,
+  'manage-parents': backend.manageParents,
 };
 for (const [name, fn] of Object.entries(functions)) {
   const cfnFunction = fn.resources.lambda.node.defaultChild as CfnFunction;
@@ -93,11 +96,14 @@ new Policy(userPool.stack, 'PreSignUpLinkProviderPolicy', {
 
 // SES checks SendEmail against the sender's verified identity (and, while the
 // account is in the SES sandbox, the recipient's), so allow any identity here.
-const inviteLambda = backend.sendEmployeeInviteEmail.resources.lambda;
-const { region, account } = Stack.of(inviteLambda);
-inviteLambda.addToRolePolicy(
-  new PolicyStatement({
-    actions: ['ses:SendEmail'],
-    resources: [`arn:aws:ses:${region}:${account}:identity/*`],
-  })
-);
+// The parent welcome email goes through SES the same way.
+for (const fn of [backend.sendEmployeeInviteEmail, backend.manageParents]) {
+  const lambda = fn.resources.lambda;
+  const { region, account } = Stack.of(lambda);
+  lambda.addToRolePolicy(
+    new PolicyStatement({
+      actions: ['ses:SendEmail'],
+      resources: [`arn:aws:ses:${region}:${account}:identity/*`],
+    })
+  );
+}

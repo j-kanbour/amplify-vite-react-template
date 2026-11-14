@@ -5,7 +5,7 @@ import { useUser } from '../context/UserContext';
 import type { Permission } from '../access';
 import { useProfilePhoto } from '../data/useProfilePhoto';
 import { initials } from '../utils/initials';
-import { LuHouse, LuGraduationCap, LuUsers, LuBuilding2, LuPackage, LuUser, LuSettings, LuLogOut, LuChevronsUpDown, LuCheck } from 'react-icons/lu';
+import { LuHouse, LuGraduationCap, LuUsers, LuBuilding2, LuContact, LuPackage, LuUser, LuSettings, LuLogOut, LuChevronsUpDown, LuCheck } from 'react-icons/lu';
 
 export type NavItem = { to: string; label: string; icon: ReactNode; permission?: Permission };
 
@@ -21,6 +21,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Students',
     permission: 'students.view',
     icon: <LuGraduationCap />,
+  },
+  {
+    to: '/parents',
+    label: 'Parents',
+    permission: 'parents.view',
+    icon: <LuContact />,
   },
   {
     to: '/bundles',

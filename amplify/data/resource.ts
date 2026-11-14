@@ -4,6 +4,7 @@ import { preTokenGeneration } from '../auth/pre-token-generation/resource';
 import { completeOnboarding } from './complete-onboarding/resource';
 import { sendEmployeeInviteEmail } from '../functions/employees/invite/resource';
 import { employeeMembership } from '../functions/employees/membership/resource';
+import { manageParents } from '../functions/parents/manage/resource';
 import { profileAccess } from '../functions/fileAccess/profiles/resource';
 import { resourceAccess } from '../functions/fileAccess/resources/resource';
 import { ORG_SIZES } from './org-sizes';
@@ -26,6 +27,24 @@ const orgId = () =>
       allow.groupDefinedIn('orgId').to(['create', 'read']),
       allow.authenticated().to(['read']),
     ]);
+
+/** What the add and edit parent mutations take (src/components/parents/ParentDialog.tsx). */
+const parentArguments = () => ({
+  firstName: a.string().required(),
+  lastName: a.string().required(),
+  email: a.string().required(),
+  phone: a.string(),
+  address: a.string(),
+  bundleId: a.id(),
+  notes: a.string(),
+  onboardingMessage: a.string(),
+  // the second parent, kept on the same record; left out to remove them
+  secondFirstName: a.string(),
+  secondLastName: a.string(),
+  secondEmail: a.string(),
+  secondPhone: a.string(),
+  secondAddress: a.string(),
+});
 
 const schema = a
   .schema({
@@ -287,6 +306,43 @@ const schema = a
         allow.ownerDefinedIn('owner').to(['read', 'update']),
         allow.groupDefinedIn('orgId'),
       ]),
+    //Parents: the families an org works with, as entered by its staff (Parents
+    // page). Not accounts: a parent who later signs in is a User, linked by
+    // userId. Created by the addParent Lambda, which lets tutors add them too.
+    ParentContact: a.customType({
+      firstName: a.string().required(),
+      lastName: a.string().required(),
+      email: a.string(),
+      phone: a.string(),
+      address: a.string(),
+    }),
+    Parent: a
+      .model({
+        orgId: orgId(),
+        firstName: a.string().required(),
+        lastName: a.string().required(),
+        email: a.string().required(), // lowercased
+        phone: a.string(),
+        address: a.string(),
+        // the Bundle they're signing up for, one of the org's
+        bundleId: a.id(),
+        notes: a.string(),
+        // included in the welcome email
+        onboardingMessage: a.string(),
+        // a second parent or guardian, part of this record rather than one of its own
+        secondary: a.ref('ParentContact'),
+        addedBy: a.id(),
+        // their User record, once they have one
+        userId: a.id(),
+        // the welcome email: 'pending' | 'sent' | 'failed'
+        emailStatus: a.string(),
+        emailMessageId: a.string(),
+      })
+      .secondaryIndexes((index) => [index('orgId').queryField('listParentsByOrg')])
+      .authorization((allow) => [
+        allow.authenticated().to(['read']),
+        allow.groupDefinedIn('orgId'),
+      ]),
     //EmployeeTask: a to-do on an employee's board. Only the org's admins and
     // the employee themselves can see or change it.
     EmployeeTask: a
@@ -460,7 +516,27 @@ const schema = a
       .arguments({ userId: a.id().required() })
       .returns(a.customType({ userId: a.id().required() }))
       .handler(a.handler.function(employeeMembership))
-      .authorization((allow) => [allow.authenticated()])
+      .authorization((allow) => [allow.authenticated()]),
+    // Parents, in the caller's active org. The Lambda checks the caller is an
+    // Admin or Tutor of it. addParent also emails the parent their details.
+    addParent: a
+      .mutation()
+      .arguments(parentArguments())
+      .returns(a.customType({ parentId: a.id().required(), emailSent: a.boolean().required() }))
+      .handler(a.handler.function(manageParents))
+      .authorization((allow) => [allow.authenticated()]),
+    updateParent: a
+      .mutation()
+      .arguments({ parentId: a.id().required(), ...parentArguments() })
+      .returns(a.customType({ parentId: a.id().required() }))
+      .handler(a.handler.function(manageParents))
+      .authorization((allow) => [allow.authenticated()]),
+    deleteParent: a
+      .mutation()
+      .arguments({ parentId: a.id().required() })
+      .returns(a.customType({ parentId: a.id().required() }))
+      .handler(a.handler.function(manageParents))
+      .authorization((allow) => [allow.authenticated()]),
   })
   .authorization((allow) => [
     allow.resource(postConfirmation),
@@ -468,6 +544,7 @@ const schema = a
     allow.resource(completeOnboarding),
     allow.resource(sendEmployeeInviteEmail).to(['query', 'mutate']),
     allow.resource(employeeMembership).to(['query', 'mutate']),
+    allow.resource(manageParents).to(['query', 'mutate']),
     allow.resource(profileAccess).to(['query']),
     allow.resource(resourceAccess).to(['query']),
   ]);
