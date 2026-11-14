@@ -7,6 +7,8 @@ import { useUser } from '../context/UserContext';
 import AvatarUpload from '../components/profile/AvatarUpload';
 import EditableDetails, { type DetailField } from '../components/profile/EditableDetails';
 import PasswordCard from '../components/profile/PasswordCard';
+import TaskBoard, { TaskCount } from '../components/tasks/TaskBoard';
+import { useTasks } from '../data/useTasks';
 import { validatePhone } from '../utils/validation';
 
 const FIELDS: DetailField[] = [
@@ -21,9 +23,28 @@ const FIELDS: DetailField[] = [
 const formatDate = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : null;
 
+/** The signed-in user's own task board in their active org. Its admins see and manage the same one. */
+function MyTasksCard() {
+  const { user, org } = useUser();
+  const board = useTasks(user?.profileOwner, org?.id);
+
+  return (
+    <section className="ts-profile__card">
+      <div className="ts-profile__card-head">
+        <div>
+          <h2 className="ts-profile__card-title">My tasks</h2>
+          <p className="ts-profile__card-sub">Your to-dos at {org?.name ?? 'your organisation'}. Your admins can see and add to these.</p>
+        </div>
+        <TaskCount tasks={board.tasks} />
+      </div>
+      <TaskBoard board={board} />
+    </section>
+  );
+}
+
 /** The signed-in user's own profile. Reached from the account menu in the sidebar. */
 export default function UserProfile() {
-  const { user, org, groups, refresh, loading } = useUser();
+  const { user, org, groups, refresh, loading, can } = useUser();
   const [providers, setProviders] = useState<string[]>([]);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -79,6 +100,8 @@ export default function UserProfile() {
         values={{ name: user.name, phone: user.phone, email: user.email, org: org?.name, role }}
         onSave={save}
       />
+
+      {can('tasks.own') && <MyTasksCard />}
 
       <PasswordCard email={user.email} />
 

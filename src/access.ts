@@ -12,6 +12,9 @@ export const permissions = {
   'users.invite':   ['Admin'],
   'users.changeRole': ['Admin'],
   'users.offboard': ['Admin'],
+  // A task board of their own. Admins also manage every employee's from the
+  // Employees page; the backend lets only them and the employee touch a task.
+  'tasks.own':      ['Admin', 'Tutor'],
   'students.view':  ['Admin', 'Tutor'],
   // Tutors see only the students assigned to them
   'students.viewAll': ['Admin'],

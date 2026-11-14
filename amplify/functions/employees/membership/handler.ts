@@ -313,6 +313,20 @@ async function offboardEmployee(identity: AppSyncIdentity | null | undefined, us
     }
   }
 
+  // Their task board in this org
+  if (target.profileOwner) {
+    const tasks = await listAll((nextToken) =>
+      db.models.EmployeeTask.listEmployeeTasksByOwner(
+        { owner: target.profileOwner!, orgId: { eq: org.id } },
+        { nextToken }
+      )
+    );
+    for (const t of tasks) {
+      const { errors } = await db.models.EmployeeTask.delete({ id: t.id });
+      if (errors?.length) throw new Error(`Failed to remove task: ${JSON.stringify(errors)}`);
+    }
+  }
+
   // An invite still in their inbox would let them straight back in
   const invites = await db.models.EmployeeInvite.listEmployeeInviteByEmail({ email: normaliseEmail(target.email) });
   await Promise.all(

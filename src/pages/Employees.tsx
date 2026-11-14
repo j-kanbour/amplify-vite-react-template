@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, Button } from '@aws-amplify/ui-react';
-import { LuCalendar, LuCheck, LuEye, LuFileText, LuGraduationCap, LuListTodo, LuMail, LuPhone, LuReceipt, LuUserCog, LuUserMinus, LuUserPlus } from 'react-icons/lu';
+import { LuCalendar, LuCheck, LuEye, LuFileText, LuGraduationCap, LuMail, LuPhone, LuReceipt, LuUserCog, LuUserMinus, LuUserPlus } from 'react-icons/lu';
 import { useUser } from '../context/UserContext';
 import Show from '../components/Show';
 import DirectoryList from '../components/directory/DirectoryList';
@@ -14,6 +14,8 @@ import type { User } from '../data/useUsers';
 import { useUploadedDocuments } from '../data/employeeDocuments';
 import DocumentPreviewDialog from '../components/directory/DocumentPreviewDialog';
 import { documentLabel } from '../../amplify/data/employee-documents';
+import TaskBoard, { TaskCount } from '../components/tasks/TaskBoard';
+import { useTasks } from '../data/useTasks';
 
 const formatDate = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : null;
@@ -88,13 +90,30 @@ function DocumentsPanel({ employee }: { employee: OrgUser }) {
   );
 }
 
+/** The employee's task board. Only admins reach this page, and they can manage anyone's. */
+function TasksPanel({ employee, orgId }: { employee: OrgUser; orgId?: string }) {
+  const board = useTasks(employee.profileOwner, orgId);
+
+  return (
+    <Panel title="Tasks" badge={<TaskCount tasks={board.tasks} />}>
+      {employee.profileOwner ? (
+        <TaskBoard board={board} emptyText={`No tasks for ${employee.name.split(' ')[0]} yet.`} />
+      ) : (
+        <p className="ts-directory__muted">Tasks can be added once they've signed in.</p>
+      )}
+    </Panel>
+  );
+}
+
 /** onChangeRole and onOffboard are left out when the viewer can't do them to this employee. */
 function EmployeeDetail({
   employee,
+  orgId,
   onChangeRole,
   onOffboard,
 }: {
   employee: OrgUser;
+  orgId?: string;
   onChangeRole?: () => void;
   onOffboard?: () => void;
 }) {
@@ -152,10 +171,7 @@ function EmployeeDetail({
 
         <DocumentsPanel employee={employee} />
 
-        {/* TODO: employee tasks */}
-        <Panel title="Tasks">
-          <EmptyState icon={<LuListTodo />}>No tasks yet.</EmptyState>
-        </Panel>
+        <TasksPanel employee={employee} orgId={orgId} />
 
         {/* TODO: list students via TutorAssignment */}
         <Panel title="Students">
@@ -234,7 +250,10 @@ export default function Employees() {
 
       {selected ? (
         <EmployeeDetail
+          // Remount per employee, so half-typed tasks don't carry over
+          key={selected.id}
           employee={selected}
+          orgId={org?.id}
           // The backend refuses changes to your own role, so an org always keeps an admin
           onChangeRole={
             can('users.changeRole') && selected.id !== me?.id ? () => setChangingRole(selected) : undefined

@@ -1634,3 +1634,127 @@ button.ts-directory__action {
     grid-template-columns: 1fr;
   }
 }
+
+/* Task board: an employee's to-dos (Employees page, and their own profile) */
+.ts-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ts-tasks__list,
+.ts-tasks .ts-tasks__item,
+.ts-tasks .ts-tasks__item:hover {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  list-style: none;
+}
+.ts-tasks__list {
+  display: flex;
+  flex-direction: column;
+}
+.ts-tasks .ts-tasks__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--ts-hairline);
+}
+.ts-tasks__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ts-tasks__check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  padding: 0;
+  border: 2px solid var(--ts-hairline);
+  border-radius: var(--ts-radius-pill);
+  background: var(--ts-card);
+  color: #fff;
+  font-size: 0.8rem;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.ts-tasks__check:hover {
+  border-color: var(--ts-teal);
+}
+.ts-tasks__check--done {
+  border-color: var(--ts-teal);
+  background: var(--ts-teal);
+}
+.ts-tasks__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ts-tasks__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+.ts-tasks__notes {
+  color: var(--ts-ink-2);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ts-tasks__due {
+  color: var(--ts-ink-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.ts-tasks__due--overdue {
+  color: var(--ts-danger);
+}
+.ts-tasks__item--done .ts-tasks__title {
+  color: var(--ts-ink-2);
+  text-decoration: line-through;
+}
+.ts-tasks__actions {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+.ts-tasks__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--ts-radius-sm);
+  background: none;
+  color: var(--ts-ink-2);
+  transition: background-color 0.15s, color 0.15s;
+}
+.ts-tasks__icon-btn:hover {
+  border-color: transparent;
+  background: var(--ts-orange-50);
+  color: var(--ts-orange);
+}
+.ts-tasks__icon-btn--danger:hover {
+  background: #fdeceb;
+  color: #b63a2b;
+}
+.ts-tasks__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ts-tasks__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ts-tasks__form .amplify-button {
+  gap: 6px;
+}

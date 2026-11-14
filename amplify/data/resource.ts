@@ -276,6 +276,39 @@ const schema = a
         allow.ownerDefinedIn('owner').to(['read', 'update']),
         allow.groupDefinedIn('orgId'),
       ]),
+    //EmployeeTask: a to-do on an employee's board. Only the org's admins and
+    // the employee themselves can see or change it.
+    EmployeeTask: a
+      .model({
+        // Both set once on create and then locked, so a task can't be moved to
+        // another org or onto someone else's board
+        orgId: a
+          .id()
+          .required()
+          .authorization((allow) => [
+            allow.groupDefinedIn('orgId').to(['create', 'read']),
+            allow.ownerDefinedIn('owner').to(['create', 'read']),
+          ]),
+        // the employee's profileOwner. An employee creating a task can only
+        // put their own here; admins can put any of their employees'.
+        owner: a
+          .string()
+          .required()
+          .authorization((allow) => [
+            allow.groupDefinedIn('orgId').to(['create', 'read']),
+            allow.ownerDefinedIn('owner').to(['create', 'read']),
+          ]),
+        title: a.string().required(),
+        notes: a.string(),
+        dueDate: a.date(),
+        // null while the task is open
+        completedAt: a.datetime(),
+      })
+      .secondaryIndexes((index) => [index('owner').sortKeys(['orgId']).queryField('listEmployeeTasksByOwner')])
+      .authorization((allow) => [
+        allow.groupDefinedIn('orgId'),
+        allow.ownerDefinedIn('owner'),
+      ]),
     //EmployeeInvite: an invite into an org, matched by the token in the emailed link
     // Written by the invite Lambdas
     EmployeeInvite: a
@@ -409,7 +442,7 @@ const schema = a
       .handler(a.handler.function(employeeMembership))
       .authorization((allow) => [allow.authenticated()]),
     // Removes an employee from the caller's active org: their Membership,
-    // tutor assignments and pending invites there. Their account and any
+    // tutor assignments, tasks and pending invites there. Their account and any
     // other orgs are kept. The Lambda checks the caller is that org's Admin.
     offboardEmployee: a
       .mutation()
