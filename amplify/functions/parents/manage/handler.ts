@@ -214,9 +214,9 @@ export const handler = async (event: Event) => {
   switch (event.fieldName ?? event.info?.fieldName) {
     case "addParent":
       return addParent(event.identity, args);
-    case "updateParent":
+    case "editParent":
       return updateParent(event.identity, args);
-    case "deleteParent":
+    case "removeParent":
       return deleteParent(event.identity, args);
     default:
       throw new Error(`Unknown field ${event.fieldName ?? event.info?.fieldName}`);

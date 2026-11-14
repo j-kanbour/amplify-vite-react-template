@@ -525,13 +525,14 @@ const schema = a
       .returns(a.customType({ parentId: a.id().required(), emailSent: a.boolean().required() }))
       .handler(a.handler.function(manageParents))
       .authorization((allow) => [allow.authenticated()]),
-    updateParent: a
+    // Named to stay clear of the model's own updateParent/deleteParent
+    editParent: a
       .mutation()
       .arguments({ parentId: a.id().required(), ...parentArguments() })
       .returns(a.customType({ parentId: a.id().required() }))
       .handler(a.handler.function(manageParents))
       .authorization((allow) => [allow.authenticated()]),
-    deleteParent: a
+    removeParent: a
       .mutation()
       .arguments({ parentId: a.id().required() })
       .returns(a.customType({ parentId: a.id().required() }))

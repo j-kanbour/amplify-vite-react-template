@@ -68,13 +68,13 @@ export async function addParent(values: ParentValues) {
 
 /** Replaces the parent's details. Leaving the second parent's fields out removes them. */
 export async function updateParent(parentId: string, values: ParentValues) {
-  const { data, errors } = await client.mutations.updateParent({ parentId, ...values });
+  const { data, errors } = await client.mutations.editParent({ parentId, ...values });
   if (errors?.length) throw new Error(errors[0].message);
   if (!data) throw new Error('Could not save the changes.');
   return data;
 }
 
 export async function deleteParent(parentId: string) {
-  const { errors } = await client.mutations.deleteParent({ parentId });
+  const { errors } = await client.mutations.removeParent({ parentId });
   if (errors?.length) throw new Error(errors[0].message);
 }
