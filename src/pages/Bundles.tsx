@@ -7,6 +7,7 @@ import { EmptyState } from '../components/directory/parts';
 import BundleCard from '../components/bundles/BundleCard';
 import BundleDialog from '../components/bundles/BundleDialog';
 import BundlePresentation from '../components/bundles/BundlePresentation';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { byShowcaseOrder, useBundles, type Bundle } from '../data/useBundles';
 
 /**
@@ -18,19 +19,9 @@ export default function Bundles() {
   const { bundles, error, add, update, remove } = useBundles(org?.id);
   const [editing, setEditing] = useState<'new' | Bundle | null>(null);
   const [showing, setShowing] = useState<'present' | 'print' | null>(null);
-  const [removeError, setRemoveError] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<Bundle | null>(null);
   const canEdit = can('bundles.edit');
   const sorted = bundles ? [...bundles].sort(byShowcaseOrder) : null;
-
-  async function handleRemove(b: Bundle) {
-    if (!window.confirm(`Remove "${b.name}"? Tutors will no longer see it.`)) return;
-    setRemoveError(null);
-    try {
-      await remove(b.id);
-    } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : 'Could not remove the bundle.');
-    }
-  }
 
   return (
     <main className="ts-bundles">
@@ -56,7 +47,6 @@ export default function Bundles() {
       </div>
 
       {error && <Alert variation="error">{error}</Alert>}
-      {removeError && <Alert variation="error" isDismissible onDismiss={() => setRemoveError(null)}>{removeError}</Alert>}
 
       {sorted === null && !error ? (
         <p className="ts-directory__muted">Loading bundles…</p>
@@ -75,7 +65,7 @@ export default function Bundles() {
                     <button
                       type="button"
                       className="ts-directory__action ts-directory__action--danger"
-                      onClick={() => handleRemove(b)}
+                      onClick={() => setRemoving(b)}
                     >
                       <LuTrash aria-hidden /> Remove
                     </button>
@@ -104,6 +94,19 @@ export default function Bundles() {
         )
       )}
 
+      <ConfirmDialog
+        open={!!removing}
+        title={`Remove “${removing?.name ?? ''}”?`}
+        description="Tutors will no longer see or present it."
+        points={[
+          'Parents already on this bundle keep their record, shown as “no longer offered”.',
+          'This can’t be undone; you’d need to add it again.',
+        ]}
+        confirmLabel="Remove bundle"
+        busyLabel="Removing…"
+        onConfirm={() => remove(removing!.id)}
+        onClose={() => setRemoving(null)}
+      />
       <BundleDialog
         target={editing}
         onClose={() => setEditing(null)}

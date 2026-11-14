@@ -7,6 +7,7 @@ import Show from '../components/Show';
 import DirectoryList from '../components/directory/DirectoryList';
 import { Avatar, EmptyState, Facts, Panel } from '../components/directory/parts';
 import ParentDialog from '../components/parents/ParentDialog';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { deleteParent, parentName, useParents, type Parent } from '../data/useParents';
 import { formatPrice, useBundles, type Bundle } from '../data/useBundles';
 
@@ -151,8 +152,8 @@ export default function Parents() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
   const [editing, setEditing] = useState<'new' | Parent | null>(null);
-  const [removing, setRemoving] = useState(false);
-  const [notice, setNotice] = useState<{ kind: 'success' | 'warning' | 'error'; text: string } | null>(null);
+  const [removing, setRemoving] = useState<Parent | null>(null);
+  const [notice, setNotice] = useState<{ kind: 'success' | 'warning'; text: string } | null>(null);
   // Selection lives in the URL so a particular parent can be linked to
   const [params, setParams] = useSearchParams();
 
@@ -170,19 +171,10 @@ export default function Parents() {
   const selected = all.find((p) => p.id === params.get('id')) ?? shown[0] ?? all[0];
 
   async function handleRemove(p: Parent) {
-    if (!window.confirm(`Remove ${parentName(p)}? Their details will be deleted for everyone.`)) return;
-    setRemoving(true);
-    setNotice(null);
-    try {
-      await deleteParent(p.id);
-      setParams({}, { replace: true });
-      setNotice({ kind: 'success', text: `${parentName(p)} has been removed.` });
-      reload();
-    } catch (err) {
-      setNotice({ kind: 'error', text: err instanceof Error ? err.message : 'Could not remove the parent.' });
-    } finally {
-      setRemoving(false);
-    }
+    await deleteParent(p.id);
+    setParams({}, { replace: true });
+    setNotice({ kind: 'success', text: `${parentName(p)} has been removed.` });
+    reload();
   }
 
   return (
@@ -229,7 +221,7 @@ export default function Parents() {
             parent={selected}
             bundle={bundleById.get(selected.bundleId ?? '')}
             onEdit={can('parents.edit') ? () => setEditing(selected) : undefined}
-            onRemove={can('parents.delete') && !removing ? () => handleRemove(selected) : undefined}
+            onRemove={can('parents.delete') ? () => setRemoving(selected) : undefined}
           />
         ) : (
           parents !== null && (
@@ -240,6 +232,20 @@ export default function Parents() {
         )}
       </div>
 
+      <ConfirmDialog
+        open={!!removing}
+        title={`Remove ${removing ? parentName(removing) : ''}?`}
+        description="Their details will be deleted for everyone in your organisation."
+        points={[
+          'Their contact details, notes and bundle choice are removed.',
+          removing?.secondary ? `${parentName(removing.secondary)}’s details go with them.` : null,
+          'This can’t be undone; they’d need to be added again.',
+        ].filter(Boolean)}
+        confirmLabel="Remove parent"
+        busyLabel="Removing…"
+        onConfirm={() => handleRemove(removing!)}
+        onClose={() => setRemoving(null)}
+      />
       <ParentDialog
         target={editing}
         bundles={bundles}

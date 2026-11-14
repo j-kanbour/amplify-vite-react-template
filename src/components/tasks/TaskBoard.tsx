@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Alert, Button, TextAreaField, TextField } from '@aws-amplify/ui-react';
 import { LuCheck, LuListTodo, LuPencil, LuPlus, LuTrash } from 'react-icons/lu';
 import { EmptyState } from '../directory/parts';
+import ConfirmDialog from '../ConfirmDialog';
 import { useTasks, type Task, type TaskDraft } from '../../data/useTasks';
 
 const today = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD, local time
@@ -104,6 +105,7 @@ function TaskRow({
   onRemove: () => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const done = !!task.completedAt;
@@ -175,13 +177,22 @@ function TaskRow({
             className="ts-tasks__icon-btn ts-tasks__icon-btn--danger"
             aria-label={`Remove "${task.title}"`}
             disabled={busy}
-            onClick={() => window.confirm(`Remove "${task.title}"?`) && run(onRemove)}
+            onClick={() => setConfirmingRemove(true)}
           >
             <LuTrash aria-hidden />
           </button>
         </span>
       </div>
       {error && <Alert variation="error">{error}</Alert>}
+      <ConfirmDialog
+        open={confirmingRemove}
+        title={`Remove “${task.title}”?`}
+        description="It comes off the board for everyone who can see it."
+        confirmLabel="Remove task"
+        busyLabel="Removing…"
+        onConfirm={onRemove}
+        onClose={() => setConfirmingRemove(false)}
+      />
     </li>
   );
 }
